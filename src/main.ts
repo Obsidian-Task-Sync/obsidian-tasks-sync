@@ -1,25 +1,25 @@
-import { App, Editor, MarkdownView, Modal, Notice, Plugin, PluginManifest, PluginSettingTab, Setting } from 'obsidian'
+import { App, Editor, MarkdownView, Modal, Notice, Plugin, PluginManifest } from 'obsidian'
 import { GTask } from './models/GTask'
 import { GTaskMockDataSource } from './models/GTaskMockDataSource'
 import { SettingTab } from './settings/setting-tab'
 
 interface GTaskSyncPluginSettings {
-  mySetting: string,
-  ownAuthenticationClient: boolean;
-	googleClientId: string;
-	googleClientSecret: string;
-	isLoggedIn: boolean;
-	useGoogleCalendarSync: boolean
-  googleRedirectUrl: string;
+  mySetting: string
+  ownAuthenticationClient: boolean
+  googleClientId: string
+  googleClientSecret: string
+  isLoggedIn: boolean
+  useGoogleCalendarSync: boolean
+  googleRedirectUrl: string
 }
 
 const DEFAULT_SETTINGS: GTaskSyncPluginSettings = {
   mySetting: 'default',
   ownAuthenticationClient: true,
-	googleClientId: '',
-	googleClientSecret: '',
+  googleClientId: '',
+  googleClientSecret: '',
   isLoggedIn: false,
-	useGoogleCalendarSync: true,
+  useGoogleCalendarSync: true,
   googleRedirectUrl: 'https://redirect.url',
 }
 
