@@ -21,9 +21,6 @@ export class SettingTab extends PluginSettingTab {
       .setDesc('If you want to use your own authentication client, please check the documentation.')
       .addToggle((toggle) =>
         toggle.setValue(this.plugin.settings.ownAuthenticationClient).onChange(async (value) => {
-          if (value === true) {
-            // 토글이 켜질 때
-          }
           this.plugin.settings.ownAuthenticationClient = value
           await this.plugin.saveSettings()
           this.display()
