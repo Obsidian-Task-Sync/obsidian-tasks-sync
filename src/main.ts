@@ -1,13 +1,26 @@
 import { App, Editor, MarkdownView, Modal, Notice, Plugin, PluginManifest, PluginSettingTab, Setting } from 'obsidian'
 import { GTask } from './models/GTask'
 import { GTaskMockDataSource } from './models/GTaskMockDataSource'
+import { SettingTab } from './settings/setting-tab'
 
 interface GTaskSyncPluginSettings {
-  mySetting: string
+  mySetting: string,
+  ownAuthenticationClient: boolean;
+	googleClientId: string;
+	googleClientSecret: string;
+	isLoggedIn: boolean;
+	useGoogleCalendarSync: boolean
+  googleRedirectUrl: string;
 }
 
 const DEFAULT_SETTINGS: GTaskSyncPluginSettings = {
   mySetting: 'default',
+  ownAuthenticationClient: true,
+	googleClientId: '',
+	googleClientSecret: '',
+  isLoggedIn: false,
+	useGoogleCalendarSync: true,
+  googleRedirectUrl: 'https://redirect.url',
 }
 
 export default class GTaskSyncPlugin extends Plugin {
@@ -71,7 +84,7 @@ export default class GTaskSyncPlugin extends Plugin {
     })
 
     // This adds a settings tab so the user can configure various aspects of the plugin
-    this.addSettingTab(new SampleSettingTab(this.app, this))
+    this.addSettingTab(new SettingTab(this.app, this))
 
     // If the plugin hooks up any global DOM events (on parts of the app that doesn't belong to this plugin)
     // Using this function will automatically remove the event listener when this plugin is disabled.
@@ -107,33 +120,5 @@ class SampleModal extends Modal {
   onClose() {
     const { contentEl } = this
     contentEl.empty()
-  }
-}
-
-class SampleSettingTab extends PluginSettingTab {
-  plugin: GTaskSyncPlugin
-
-  constructor(app: App, plugin: GTaskSyncPlugin) {
-    super(app, plugin)
-    this.plugin = plugin
-  }
-
-  display(): void {
-    const { containerEl } = this
-
-    containerEl.empty()
-
-    new Setting(containerEl)
-      .setName('Setting #1')
-      .setDesc("It's a secret")
-      .addText((text) =>
-        text
-          .setPlaceholder('Enter your secret')
-          .setValue(this.plugin.settings.mySetting)
-          .onChange(async (value) => {
-            this.plugin.settings.mySetting = value
-            await this.plugin.saveSettings()
-          }),
-      )
   }
 }
