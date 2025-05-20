@@ -4,6 +4,11 @@ settings:
   autoInstallPeers: true
   excludeLinksFromLockfile: false
 
+dependencies:
+  es-toolkit:
+    specifier: ^1.38.0
+    version: 1.38.0
+
 devDependencies:
   '@types/node':
     specifier: ^16.11.6
@@ -635,6 +640,10 @@ packages:
     dependencies:
       esutils: 2.0.3
     dev: true
+
+  /es-toolkit@1.38.0:
+    resolution: {integrity: sha512-OT3AxczYYd3W50bCj4V0hKoOAfqIy9tof0leNQYekEDxVKir3RTVTJOLij7VAe6fsCNsGhC0JqIkURpMXTCSEA==}
+    dev: false
 
   /esbuild@0.17.3:
     resolution: {integrity: sha512-9n3AsBRe6sIyOc6kmoXg2ypCLgf3eZSraWFRpnkto+svt8cZNuKTkb1bhQcitBcvIqjNiK7K0J3KPmwGSfkA8g==}
