@@ -1,8 +1,5 @@
 import { App, PluginSettingTab, Setting } from 'obsidian'
-import { merge } from 'es-toolkit'
-
-import GTaskSyncPlugin from 'src/main'
-import type { GTaskSyncPluginSettings } from 'src/main'
+import GTaskSyncPlugin, { GTaskSyncPluginSettings } from 'src/main'
 
 export class SettingTab extends PluginSettingTab {
   private plugin: GTaskSyncPlugin
@@ -24,7 +21,7 @@ export class SettingTab extends PluginSettingTab {
       .setDesc('If you want to use your own authentication client, please check the documentation.')
       .addToggle((toggle) =>
         toggle.setValue(this.plugin.settings.ownAuthenticationClient).onChange((value) => {
-          this.updateSettings({ ownAuthenticationClient: value })
+          this.update({ ownAuthenticationClient: value })
         }),
       )
 
@@ -37,7 +34,7 @@ export class SettingTab extends PluginSettingTab {
             .setPlaceholder('Enter your client id')
             .setValue(this.plugin.settings.googleClientId)
             .onChange((value) => {
-              this.updateSettings({ googleClientId: value.trim() })
+              this.update({ googleClientId: value.trim() })
             }),
         )
 
@@ -49,7 +46,7 @@ export class SettingTab extends PluginSettingTab {
             .setPlaceholder('Enter your client secret')
             .setValue(this.plugin.settings.googleClientSecret)
             .onChange((value) => {
-              this.updateSettings({ googleClientSecret: value.trim() })
+              this.update({ googleClientSecret: value.trim() })
             }),
         )
     }
@@ -66,14 +63,13 @@ export class SettingTab extends PluginSettingTab {
       .setDesc('The url to the server where the oauth takes place')
       .addText((text) => {
         text.setValue(this.plugin.settings.googleRedirectUrl).onChange((value) => {
-          this.updateSettings({ googleRedirectUrl: value.trim() })
+          this.update({ googleRedirectUrl: value.trim() })
         })
       })
   }
 
-  updateSettings(settings: Partial<GTaskSyncPluginSettings>) {
-    this.plugin.settings = merge(this.plugin.settings, settings)
-    this.plugin.saveSettings()
+  async update(settings: Partial<GTaskSyncPluginSettings>) {
+    this.plugin.updateSettings(settings)
     this.display()
   }
 }

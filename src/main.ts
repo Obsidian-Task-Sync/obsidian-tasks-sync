@@ -1,3 +1,4 @@
+import { merge } from 'es-toolkit'
 import { App, Editor, MarkdownView, Modal, Notice, Plugin, PluginManifest } from 'obsidian'
 import { GTask } from './models/GTask'
 import { GTaskMockDataSource } from './models/GTaskMockDataSource'
@@ -102,7 +103,8 @@ export default class GTaskSyncPlugin extends Plugin {
     this.settings = Object.assign({}, DEFAULT_SETTINGS, await this.loadData())
   }
 
-  async saveSettings() {
+  async updateSettings(settings: Partial<GTaskSyncPluginSettings>) {
+    this.settings = merge(this.settings, settings)
     await this.saveData(this.settings)
   }
 }
