@@ -1,8 +1,11 @@
 import { App, PluginSettingTab, Setting } from 'obsidian'
+import { merge } from 'es-toolkit'
+
 import GTaskSyncPlugin from 'src/main'
+import type { GTaskSyncPluginSettings } from 'src/main'
 
 export class SettingTab extends PluginSettingTab {
-  plugin: GTaskSyncPlugin
+  private plugin: GTaskSyncPlugin
 
   constructor(app: App, plugin: GTaskSyncPlugin) {
     super(app, plugin)
@@ -20,10 +23,8 @@ export class SettingTab extends PluginSettingTab {
       .setName('Use your own authentication client')
       .setDesc('If you want to use your own authentication client, please check the documentation.')
       .addToggle((toggle) =>
-        toggle.setValue(this.plugin.settings.ownAuthenticationClient).onChange(async (value) => {
-          this.plugin.settings.ownAuthenticationClient = value
-          await this.plugin.saveSettings()
-          this.display()
+        toggle.setValue(this.plugin.settings.ownAuthenticationClient).onChange((value) => {
+          this.updateSettings({ ownAuthenticationClient: value })
         }),
       )
 
@@ -35,9 +36,8 @@ export class SettingTab extends PluginSettingTab {
           text
             .setPlaceholder('Enter your client id')
             .setValue(this.plugin.settings.googleClientId)
-            .onChange(async (value) => {
-              this.plugin.settings.googleClientId = value.trim()
-              await this.plugin.saveSettings()
+            .onChange((value) => {
+              this.updateSettings({ googleClientId: value.trim() })
             }),
         )
 
@@ -48,9 +48,8 @@ export class SettingTab extends PluginSettingTab {
           text
             .setPlaceholder('Enter your client secret')
             .setValue(this.plugin.settings.googleClientSecret)
-            .onChange(async (value) => {
-              this.plugin.settings.googleClientSecret = value.trim()
-              await this.plugin.saveSettings()
+            .onChange((value) => {
+              this.updateSettings({ googleClientSecret: value.trim() })
             }),
         )
     }
@@ -66,23 +65,15 @@ export class SettingTab extends PluginSettingTab {
       .setName('Google Redirct url')
       .setDesc('The url to the server where the oauth takes place')
       .addText((text) => {
-        text.setValue(this.plugin.settings.googleRedirectUrl).onChange(async (value) => {
-          this.plugin.settings.googleRedirectUrl = value.trim()
-          await this.plugin.saveSettings()
+        text.setValue(this.plugin.settings.googleRedirectUrl).onChange((value) => {
+          this.updateSettings({ googleRedirectUrl: value.trim() })
         })
       })
+  }
 
-    new Setting(containerEl)
-      .setName('Google Calendar Integration')
-      .setDesc('Sync your tasks with Google Calendar')
-      .addToggle((toggle) => {
-        toggle.setValue(this.plugin.settings.useGoogleCalendarSync).onChange(async (state) => {
-          this.plugin.settings.useGoogleCalendarSync = state
-          await this.plugin.saveSettings()
-
-          this.hide()
-          this.display()
-        })
-      })
+  updateSettings(settings: Partial<GTaskSyncPluginSettings>) {
+    this.plugin.settings = merge(this.plugin.settings, settings)
+    this.plugin.saveSettings()
+    this.display()
   }
 }

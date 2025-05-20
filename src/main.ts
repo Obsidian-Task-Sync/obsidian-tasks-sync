@@ -3,7 +3,7 @@ import { GTask } from './models/GTask'
 import { GTaskMockDataSource } from './models/GTaskMockDataSource'
 import { SettingTab } from './settings/setting-tab'
 
-interface GTaskSyncPluginSettings {
+export interface GTaskSyncPluginSettings {
   mySetting: string
   ownAuthenticationClient: boolean
   googleClientId: string
