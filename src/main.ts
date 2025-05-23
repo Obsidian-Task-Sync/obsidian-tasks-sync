@@ -4,7 +4,7 @@ import { TaskController } from './controllers/TaskController';
 import { GTaskMockRemote } from './models/remote/GTaskMockRemote';
 import { TaskRepository } from './repositories/TaskRepository';
 import { SettingTab } from './views/SettingTab';
-import { registerCommands } from './views/CommandController';
+import { registerCommands } from './controllers/CommandController';
 
 export interface GTaskSyncPluginSettings {
   mySetting: string;
