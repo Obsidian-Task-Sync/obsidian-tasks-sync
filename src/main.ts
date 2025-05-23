@@ -1,7 +1,7 @@
 import { merge } from 'es-toolkit';
 import { App, Editor, MarkdownView, Modal, Notice, Plugin, PluginManifest } from 'obsidian';
 import { TaskController } from './controllers/TaskController';
-import { GTaskMockRemote } from './models/remote/GTaskMockRemote';
+import { GTaskMockRemote } from './models/remote/GTask/GTaskMockRemote';
 import { TaskRepository } from './repositories/TaskRepository';
 import { SettingTab } from './views/SettingTab';
 
