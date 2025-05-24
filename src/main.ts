@@ -4,6 +4,7 @@ import { TaskController } from './controllers/TaskController';
 import { GTaskMockRemote } from './models/remote/GTaskMockRemote';
 import { TaskRepository } from './repositories/TaskRepository';
 import { SettingTab } from './views/SettingTab';
+import {registerTurnIntoGoogleTaskCommand} from "./views/TurnIntoGoogleTaskCommand";
 
 export interface GTaskSyncPluginSettings {
   mySetting: string;
@@ -101,6 +102,8 @@ export default class GTaskSyncPlugin extends Plugin {
 
     // When registering intervals, this function will automatically clear the interval when the plugin is disabled.
     this.registerInterval(window.setInterval(() => console.log('setInterval'), 5 * 60 * 1000));
+
+	registerTurnIntoGoogleTaskCommand(this);
 
     this.taskController.init();
   }
