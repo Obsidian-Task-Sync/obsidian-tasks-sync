@@ -1,0 +1,31 @@
+name: "🚀 Feature Request"
+description: 새로운 기능 또는 개선사항을 제안합니다.
+title: "[Feature] "
+labels: ["feature", "needs triage"]
+body:
+    - type: input
+      id: title
+      attributes:
+          label: 기능 요약
+          placeholder: 예) 자동 태그 동기화
+      validations:
+          required: true
+    - type: textarea
+      id: description
+      attributes:
+          label: 📌 상세 설명
+          description: 어떤 문제를 해결하고자 하는지, 기능의 필요성을 설명해주세요.
+      validations:
+          required: true
+    - type: textarea
+      id: proposal
+      attributes:
+          label: 💡 구현 아이디어
+          description: 구현 방식에 대한 아이디어가 있다면 자유롭게 작성해주세요.
+    - type: checkboxes
+      id: checklist
+      attributes:
+          label: 체크리스트
+          options:
+              - label: 관련 문서(wiki/README)도 업데이트할 예정입니다.
+              - label: 기존 기능과 충돌하지 않도록 고려했습니다.
