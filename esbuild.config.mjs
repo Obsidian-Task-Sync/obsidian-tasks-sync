@@ -35,7 +35,6 @@ const context = await esbuild.context({
     // for google api autrhoizes node.js
     'http',
     'url',
-    'open',
     ...builtins,
   ],
   format: 'cjs',
