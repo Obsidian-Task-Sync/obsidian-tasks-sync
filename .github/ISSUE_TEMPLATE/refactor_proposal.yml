@@ -1,0 +1,33 @@
+name: "♻️ Refactor Proposal"
+description: 구조 개선이나 리팩토링을 제안합니다.
+title: "[Refactor] "
+labels: ["refactor", "enhancement"]
+body:
+    - type: input
+      id: title
+      attributes:
+          label: 리팩토링 항목 제목
+          placeholder: 예) syncService 코드 분리
+      validations:
+          required: true
+    - type: textarea
+      id: current
+      attributes:
+          label: 📋 현재 구조
+          description: 개선이 필요한 현재 구조나 문제를 설명해주세요.
+      validations:
+          required: true
+    - type: textarea
+      id: suggestion
+      attributes:
+          label: 🔧 개선 제안
+          description: 어떻게 리팩토링하면 좋을지에 대한 제안을 작성해주세요.
+      validations:
+          required: true
+    - type: checkboxes
+      id: checklist
+      attributes:
+          label: 체크리스트
+          options:
+              - label: 기존 기능 동작에는 영향을 주지 않습니다.
+              - label: 코드 테스트가 포함되어 있거나 영향을 주지 않는 변경입니다.

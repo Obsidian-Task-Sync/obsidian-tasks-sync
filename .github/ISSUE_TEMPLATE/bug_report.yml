@@ -1,0 +1,39 @@
+name: "🐞 Bug Report"
+description: 발견한 버그를 신고합니다.
+title: "[Bug] "
+labels: ["bug", "needs triage"]
+body:
+    - type: input
+      id: summary
+      attributes:
+          label: 버그 요약
+          placeholder: 예) 태그 동기화 시 500 오류 발생
+      validations:
+          required: true
+    - type: textarea
+      id: description
+      attributes:
+          label: ❗ 문제 설명
+          description: 어떤 상황에서 어떤 문제가 발생했는지 구체적으로 설명해주세요.
+      validations:
+          required: true
+    - type: textarea
+      id: steps
+      attributes:
+          label: 재현 방법
+          placeholder: |
+              1. 플러그인 활성화
+              2. '동기화 시작' 버튼 클릭
+              3. 오류 메시지 발생
+      validations:
+          required: true
+    - type: input
+      id: version
+      attributes:
+          label: 사용한 버전
+          placeholder: 예) v1.0.2
+    - type: textarea
+      id: logs
+      attributes:
+          label: 콘솔 로그
+          description: (선택) 에러 메시지나 콘솔 로그가 있다면 붙여넣어주세요.
