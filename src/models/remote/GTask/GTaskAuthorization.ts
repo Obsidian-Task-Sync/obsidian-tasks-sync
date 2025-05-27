@@ -1,33 +1,40 @@
-import * as http from 'http';
-import * as url from 'url';
-import { google } from 'googleapis';
-import open from 'open'; // npm install open 필요
+import { OAuth2Client } from 'google-auth-library';
+import { Notice, Platform } from 'obsidian';
 
 class GTaskAuthData {
   accessToken: string;
   refreshToken: string;
   clientId: string;
   clientSecret: string;
+  accessTokenExpiresAt: number;
 
-  constructor(accessToken: string, refreshToken: string, clientId: string, clientSecret: string) {
+  constructor(accessToken: string, refreshToken: string, clientId: string, clientSecret: string, expiresIn: number) {
     this.accessToken = accessToken;
     this.refreshToken = refreshToken;
     this.clientId = clientId;
-    this.clientSecret = clientSecret;
+    this.accessTokenExpiresAt = Date.now() + expiresIn * 1000;
   }
 
   accessTokenIsValid(): boolean {
-    //TODO : accessToken 유효기간 체크
-    return true;
+    return Date.now() < this.accessTokenExpiresAt;
   }
 
   async refresh(): Promise<void> {
-    //TODO : refresh token으로 access token 갱신
+    const oAuth2Client = new OAuth2Client(this.clientId, this.clientSecret, GTaskAuthorization.REDIRECT_URI);
+    oAuth2Client.setCredentials({ refresh_token: this.refreshToken });
+    const { credentials } = await oAuth2Client.refreshAccessToken();
+    this.accessToken = credentials.access_token!;
+    this.accessTokenExpiresAt =
+      Date.now() + (credentials.expiry_date ? (credentials.expiry_date - Date.now()) / 1000 : 3600) * 1000;
   }
 }
 
 export class GTaskAuthorization {
-  private static REDIRECT_URI = 'http://localhost:9325/callback';
+  static SERVER_PORT = 42813;
+  static SERVER_URI = 'http://127.0.0.1:' + GTaskAuthorization.SERVER_PORT;
+  static REDIRECT_URI = GTaskAuthorization.SERVER_URI + '/callback';
+
+  private static SCOPES = 'https://www.googleapis.com/auth/tasks';
 
   private authData: GTaskAuthData;
   private saveAuthData: (data: GTaskAuthData) => Promise<void>;
@@ -49,108 +56,87 @@ export class GTaskAuthorization {
     clientId: string,
     clientSecret: string,
   ): Promise<GTaskAuthorization> {
-    const authData = await GTaskAuthorization.authorize(loadAuthData, clientId, clientSecret);
-    await saveAuthData(authData);
-    return new GTaskAuthorization(saveAuthData, loadAuthData, authData);
-  }
-
-  static async authorize(
-    loadAuthData: () => Promise<GTaskAuthData>,
-    clientId: string,
-    clientSecret: string,
-  ): Promise<GTaskAuthData> {
     const authData = await loadAuthData();
 
     if (authData != null) {
       if (authData.accessTokenIsValid()) {
-        return authData;
+        return new GTaskAuthorization(saveAuthData, loadAuthData, authData);
       } else {
         //TODO: refresh Token이 유효하지 않은 경우 새로 발급받도록 하기
         await authData.refresh();
+        await saveAuthData(authData);
       }
-      return authData;
+      return new GTaskAuthorization(saveAuthData, loadAuthData, authData);
     }
 
-    const oauth2Client = new google.auth.OAuth2(clientId, clientSecret, GTaskAuthorization.REDIRECT_URI);
+    await this.loginGoogle(clientId, clientSecret);
 
-    const authUrl = oauth2Client.generateAuthUrl({
-      access_type: 'offline',
-      scope: ['https://www.googleapis.com/auth/tasks'],
-      prompt: 'consent',
-    });
-
-    const code = await GTaskAuthorization.getCode(authUrl); // 사용자가 인증코드를 입력하는 함수 필요
-    const { tokens } = await oauth2Client.getToken(code);
-
-    return new GTaskAuthData(tokens.access_token ?? '', tokens.refresh_token ?? '', clientId, clientSecret);
+    await saveAuthData(authData);
+    return new GTaskAuthorization(saveAuthData, loadAuthData, authData);
   }
 
-  static async getCode(authUrl: string): Promise<string> {
-    return new Promise((resolve, reject) => {
-      const server = http.createServer((req, res) => {
-        try {
-          const reqUrl = url.parse(req.url ?? '', true);
+  static async loginGoogle(clientId: string, clientSecret: string): Promise<GTaskAuthData> {
+    if (Platform.isDesktop) {
+      const http = require('http');
+      const url = require('url');
 
-          if (reqUrl.pathname === '/callback') {
-            if (reqUrl.query.code) {
-              res.writeHead(200, { 'Content-Type': 'text/html; charset=utf-8' });
-              res.end(`
-                <html>
-                  <body>
-                    <h2>authorize complete</h2>
-                    <script>setTimeout(() => window.close(), 2000);</script>
-                  </body>
-                </html>
-              `);
-              server.close();
-              resolve(reqUrl.query.code as string);
-            } else if (reqUrl.query.error) {
-              res.writeHead(400, { 'Content-Type': 'text/html; charset=utf-8' });
-              res.end(`
-                <html>
-                  <body>
-                    <h2>authorize failed</h2>
-                  </body>
-                </html>
-              `);
-              server.close();
-              reject(new Error(`인증 오류: ${reqUrl.query.error}`));
+      const oAuth2Client = new OAuth2Client(clientId, clientSecret, GTaskAuthorization.REDIRECT_URI);
+
+      const authorizeUrl = oAuth2Client.generateAuthUrl({
+        scope: GTaskAuthorization.SCOPES,
+        access_type: 'offline',
+        prompt: 'consent',
+      });
+
+      return new Promise<GTaskAuthData>((resolve, reject) => {
+        const server = http
+          .createServer(async (req: any, res: any) => {
+            try {
+              if (req.url.indexOf('/callback') > -1) {
+                const qs = new url.URL(req.url, GTaskAuthorization.SERVER_URI).searchParams;
+                const code = qs.get('code');
+                res.end('Authentication successful! Please return to obsidian.');
+
+                try {
+                  const tokens = (await oAuth2Client.getToken(code)).tokens;
+                  server.close();
+                  if (!tokens.access_token || !tokens.refresh_token) {
+                    reject(
+                      new Error(
+                        'Missing required token fields: ' +
+                          JSON.stringify({
+                            access_token: tokens.access_token,
+                            refresh_token: tokens.refresh_token,
+                            expiry_date: tokens.expiry_date,
+                          }),
+                      ),
+                    );
+                    return;
+                  }
+                  resolve(
+                    new GTaskAuthData(
+                      tokens.access_token,
+                      tokens.refresh_token,
+                      clientId,
+                      clientSecret,
+                      tokens.expiry_date ? (tokens.expiry_date - Date.now()) / 1000 : 3600,
+                    ),
+                  );
+                } catch (err) {
+                  reject(err);
+                }
+              }
+            } catch (e) {
+              reject(e);
             }
-          } else {
-            res.writeHead(404, { 'Content-Type': 'text/html; charset=utf-8' });
-            res.end(`
-              <html>
-                <body>
-                  <h2>wrong redirect uri</h2>
-                </body>
-              </html>
-            `);
-          }
-        } catch (error) {
-          console.error('server error:', error);
-          server.close();
-          reject(error);
-        }
+          })
+          .listen(GTaskAuthorization.SERVER_PORT, () => {
+            window.open(authorizeUrl, '_blank');
+          });
       });
-
-      server.on('error', (error) => {
-        console.error('server start error:', error);
-        reject(error);
-      });
-
-      server.listen(9325, 'localhost', () => {
-        open(authUrl).catch((err) => {
-          console.error('brower open fail:', err);
-        });
-      });
-
-      setTimeout(
-        () => {
-          server.close();
-          reject(new Error('timeout (5min) please try again'));
-        },
-        5 * 60 * 1000,
-      );
-    });
+    } else {
+      new Notice("Can't use OAuth on this device");
+      throw new Error('OAuth not supported on this device');
+    }
   }
 }
