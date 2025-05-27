@@ -69,13 +69,13 @@ export class GTaskAuthorization {
       return new GTaskAuthorization(saveAuthData, loadAuthData, authData);
     }
 
-    await this.loginGoogle(clientId, clientSecret);
+    const registeredAuthData = await this.loginGoogle(clientId, clientSecret);
 
-    await saveAuthData(authData);
-    return new GTaskAuthorization(saveAuthData, loadAuthData, authData);
+    await saveAuthData(registeredAuthData);
+    return new GTaskAuthorization(saveAuthData, loadAuthData, registeredAuthData);
   }
 
-  static async loginGoogle(clientId: string, clientSecret: string): Promise<GTaskAuthData> {
+  private static async loginGoogle(clientId: string, clientSecret: string): Promise<GTaskAuthData> {
     if (Platform.isDesktop) {
       const http = require('http');
       const url = require('url');
