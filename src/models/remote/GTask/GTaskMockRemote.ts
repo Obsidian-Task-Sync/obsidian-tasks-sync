@@ -1,5 +1,5 @@
-import { Task } from '../Task';
-import { Remote } from './Remote';
+import { Task } from '../../Task';
+import { Remote } from '../Remote';
 
 export interface GTaskItem {
   id: string;
