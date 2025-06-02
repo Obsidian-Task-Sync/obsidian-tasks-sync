@@ -28,6 +28,10 @@ export class GTaskRemote implements Remote {
     });
   }
 
+  dispose() {
+    this._auth?.dispose();
+  }
+
   async authorize() {
     await this._auth?.authorize();
   }

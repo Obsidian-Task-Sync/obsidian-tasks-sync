@@ -113,6 +113,7 @@ export default class GTaskSyncPlugin extends Plugin {
 
   onunload() {
     this.taskController.dispose();
+    this.remote.dispose();
   }
 
   async loadSettings() {
