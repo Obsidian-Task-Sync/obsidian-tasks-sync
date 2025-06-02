@@ -7,6 +7,10 @@ import { SettingTab } from './views/SettingTab';
 import { SyncButtonExtension } from './views/SyncButtonExtension';
 import { registerTurnIntoGoogleTaskCommand } from './commands/TurnIntoGoogleTaskCommand';
 
+export let pluginInstance: GTaskSyncPlugin;
+//테스트용 MockRemote() 연결, 실제로는 GTaskRemote를 사용해야 합니다.
+export let remote: GTaskMockRemote;
+
 export interface GTaskSyncPluginSettings {
   mySetting: string;
   ownAuthenticationClient: boolean;
@@ -36,12 +40,14 @@ export default class GTaskSyncPlugin extends Plugin {
   constructor(app: App, manifest: PluginManifest) {
     super(app, manifest);
 
-    const remote = new GTaskMockRemote();
     this.taskRepo = new TaskRepository(app, remote);
     this.taskController = new TaskController(app, this.taskRepo);
   }
 
   async onload() {
+    // eslint-disable-next-line @typescript-eslint/no-this-alias
+    pluginInstance = this;
+    remote = new GTaskMockRemote();
     await this.loadSettings();
 
     // 옵시디언에서 특정한 텍스트 타입 인식하게 하기 , SYNC 버튼 추가
@@ -124,6 +130,10 @@ export default class GTaskSyncPlugin extends Plugin {
     this.settings = merge(this.settings, settings);
     await this.saveData(this.settings);
   }
+
+  getTask(id: string) {
+    return remote.get(id);
+  }
 }
 
 class SampleModal extends Modal {
@@ -140,4 +150,12 @@ class SampleModal extends Modal {
     const { contentEl } = this;
     contentEl.empty();
   }
+}
+
+export function getPluginInstance() {
+  return pluginInstance;
+}
+
+export function getRemote() {
+  return remote;
 }
