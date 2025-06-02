@@ -27,9 +27,9 @@ export class TaskRepository {
     const tasksByFilePath = this.getTasksByFilePath(file.path);
 
     for (const line of lines) {
-      const match = line.match(/- \[(.+?)\] \[(.+?)\]\(gtask:([^)]+)\)/);
+      const match = line.match(/- \[(.+?)\] \[(.+?)\]\(gtask:([^)]+):([^)]+)\)/);
       if (match) {
-        const [, status, title, id] = match;
+        const [, status, title, tasklistId, id] = match;
         const cached = tasksByFilePath.get(id);
 
         if (cached != null) {
@@ -40,7 +40,7 @@ export class TaskRepository {
           result.updated.push(cached);
         } else {
           const taskStatus: TaskStatus = status === 'x' ? 'completed' : 'needsAction';
-          const task = new Task(id, title, taskStatus);
+          const task = new Task(id, tasklistId, title, taskStatus);
 
           tasksByFilePath.set(id, task);
           result.added.push(task);
@@ -49,14 +49,14 @@ export class TaskRepository {
     }
 
     for (const task of tasksByFilePath.values()) {
-      if (!lines.some((line) => line.includes(`gtask:${task.id}`))) {
+      if (!lines.some((line) => line.includes(`gtask:${task.tasklistId}:${task.id}`))) {
         tasksByFilePath.delete(task.id);
       }
     }
 
-    await Promise.all(result.updated.map((task) => this.remote.update(task)));
+    console.log(result.updated);
 
-    console.log(await this.remote.list(), tasksByFilePath);
+    await Promise.all(result.updated.map((task) => this.remote.update(task.id, task.tasklistId, task)));
     return result;
   }
 

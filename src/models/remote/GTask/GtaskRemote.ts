@@ -1,21 +1,99 @@
+import { assert } from 'es-toolkit';
+import { google, tasks_v1 } from 'googleapis';
+import { Notice } from 'obsidian';
+import GTaskSyncPlugin from 'src/main';
 import { Task } from '../../Task';
 import { Remote } from '../Remote';
 import { GTaskAuthorization } from './GTaskAuthorization';
 
-export class GtaskRemote implements Remote {
-  private authorization: GTaskAuthorization;
+export class GTaskRemote implements Remote {
+  private _auth?: GTaskAuthorization;
+  private _client?: tasks_v1.Tasks;
 
-  constructor(authorization: GTaskAuthorization) {
-    this.authorization = authorization;
+  constructor(private plugin: GTaskSyncPlugin) {}
+
+  async init() {
+    if (this.plugin.settings.googleClientId == null || this.plugin.settings.googleClientSecret == null) {
+      return;
+    }
+
+    this._auth = new GTaskAuthorization(
+      this.plugin.app,
+      this.plugin.settings.googleClientId,
+      this.plugin.settings.googleClientSecret,
+    );
+    this._client = google.tasks({
+      version: 'v1',
+      auth: this._auth.getAuthClient(),
+    });
   }
 
-  get(id: string): Promise<Task> {
-    throw new Error('Method not implemented.');
+  async authorize() {
+    await this._auth?.authorize();
   }
-  list(): Promise<Task[]> {
-    throw new Error('Method not implemented.');
+
+  async assure() {
+    if (this._client == null || this._auth == null) {
+      throw new Error("There's no authentication. Please login to Google at Settings.");
+    }
+
+    return this._client;
   }
-  update(from: Task): Promise<void> {
-    throw new Error('Method not implemented.');
+
+  async get(id: string, tasklistId: string): Promise<Task> {
+    try {
+      const client = await this.assure();
+      const { data, status } = await client.tasks.get({
+        task: id,
+        tasklist: tasklistId,
+      });
+
+      assert(status === 200, 'Failed to get task');
+      assert(data.id != null, 'Task ID is null');
+      assert(data.title != null, 'Task title is null');
+      assert(data.status != null, 'Task status is null');
+
+      return new Task(data.id, tasklistId, data.title, data.completed != null ? 'completed' : 'needsAction');
+    } catch (error) {
+      new Notice(`태스크를 가져오는데 실패했습니다: ${error.message}`);
+      throw error;
+    }
+  }
+
+  async update(id: string, tasklistId: string, from: Task): Promise<void> {
+    try {
+      const client = await this.assure();
+      await client.tasks.update({
+        task: id,
+        tasklist: tasklistId,
+        requestBody: {
+          id: id,
+          title: from.title,
+          status: from.status === 'completed' ? 'completed' : 'needsAction',
+        },
+      });
+      new Notice('태스크가 업데이트되었습니다');
+    } catch (error) {
+      new Notice(`태스크 업데이트에 실패했습니다: ${error.message}`);
+      throw error;
+    }
+  }
+
+  async getTasklists() {
+    const client = await this.assure();
+    const { data, status } = await client.tasklists.list();
+    assert(status === 200, 'Failed to get tasklists');
+    assert(data.items != null, 'Tasklists are null');
+    return data.items;
+  }
+
+  async getTasks(tasklistId: string) {
+    const client = await this.assure();
+    const { data, status } = await client.tasks.list({
+      tasklist: tasklistId,
+    });
+    assert(status === 200, 'Failed to get tasks');
+    assert(data.items != null, 'Tasks are null');
+    return data.items;
   }
 }

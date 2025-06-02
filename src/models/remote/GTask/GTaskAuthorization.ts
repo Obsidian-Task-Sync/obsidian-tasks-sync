@@ -1,133 +1,100 @@
 import { OAuth2Client } from 'google-auth-library';
-import { Notice, Platform } from 'obsidian';
+import { App, Notice, Platform } from 'obsidian';
+import { PersistStorage } from 'src/models/PersistStorage';
+import { z } from 'zod';
 
-class GTaskAuthData {
-  accessToken: string;
-  refreshToken: string;
-  clientId: string;
-  clientSecret: string;
-  accessTokenExpiresAt: number;
-
-  constructor(accessToken: string, refreshToken: string, clientId: string, clientSecret: string, expiresIn: number) {
-    this.accessToken = accessToken;
-    this.refreshToken = refreshToken;
-    this.clientId = clientId;
-    this.accessTokenExpiresAt = Date.now() + expiresIn * 1000;
-  }
-
-  accessTokenIsValid(): boolean {
-    return Date.now() < this.accessTokenExpiresAt;
-  }
-
-  async refresh(): Promise<void> {
-    const oAuth2Client = new OAuth2Client(this.clientId, this.clientSecret, GTaskAuthorization.REDIRECT_URI);
-    oAuth2Client.setCredentials({ refresh_token: this.refreshToken });
-    const { credentials } = await oAuth2Client.refreshAccessToken();
-    this.accessToken = credentials.access_token!;
-    this.accessTokenExpiresAt =
-      Date.now() + (credentials.expiry_date ? (credentials.expiry_date - Date.now()) / 1000 : 3600) * 1000;
-  }
-}
+const credentials = z.object({
+  access_token: z.string().nullable().optional(),
+  refresh_token: z.string().nullable().optional(),
+  scope: z.string().optional(),
+  token_type: z.string().nullable().optional(),
+  expiry_date: z.number().nullable().optional(),
+});
 
 export class GTaskAuthorization {
-  static SERVER_PORT = 42813;
-  static SERVER_URI = 'http://127.0.0.1:' + GTaskAuthorization.SERVER_PORT;
-  static REDIRECT_URI = GTaskAuthorization.SERVER_URI + '/callback';
+  private static readonly SERVER_PORT = 42813;
+  private static readonly SERVER_URI = 'http://127.0.0.1:' + GTaskAuthorization.SERVER_PORT;
+  private static readonly REDIRECT_URI = GTaskAuthorization.SERVER_URI + '/callback';
+  private static readonly SCOPES = 'https://www.googleapis.com/auth/tasks';
 
-  private static SCOPES = 'https://www.googleapis.com/auth/tasks';
+  private authClient: OAuth2Client;
 
-  private authData: GTaskAuthData;
-  private saveAuthData: (data: GTaskAuthData) => Promise<void>;
-  private loadAuthData: () => Promise<GTaskAuthData>;
+  private persistedCredentials = new PersistStorage<z.infer<typeof credentials>>(this.app, 'gtask-tokens', (value) =>
+    credentials.parse(value),
+  );
 
-  private constructor(
-    saveAuthData: (data: GTaskAuthData) => Promise<void>,
-    loadAuthData: () => Promise<GTaskAuthData>,
-    authData: GTaskAuthData,
-  ) {
-    this.saveAuthData = saveAuthData;
-    this.loadAuthData = loadAuthData;
-    this.authData = authData;
-  }
-
-  static async getAuthorization(
-    saveAuthData: (data: GTaskAuthData) => Promise<void>,
-    loadAuthData: () => Promise<GTaskAuthData>,
+  constructor(
+    private app: App,
     clientId: string,
     clientSecret: string,
-  ): Promise<GTaskAuthorization> {
-    const authData = await loadAuthData();
+  ) {
+    this.authClient = new OAuth2Client(clientId, clientSecret, GTaskAuthorization.REDIRECT_URI);
 
-    if (authData != null) {
-      if (authData.accessTokenIsValid()) {
-        return new GTaskAuthorization(saveAuthData, loadAuthData, authData);
-      } else {
-        //TODO: refresh Token이 유효하지 않은 경우 새로 발급받도록 하기
-        await authData.refresh();
-        await saveAuthData(authData);
+    this.persistedCredentials.get().then((savedTokens) => {
+      if (savedTokens != null) {
+        this.authClient.setCredentials(savedTokens);
       }
-      return new GTaskAuthorization(saveAuthData, loadAuthData, authData);
-    }
-
-    const registeredAuthData = await this.loginGoogle(clientId, clientSecret);
-
-    await saveAuthData(registeredAuthData);
-    return new GTaskAuthorization(saveAuthData, loadAuthData, registeredAuthData);
+    });
   }
 
-  private static async loginGoogle(clientId: string, clientSecret: string): Promise<GTaskAuthData> {
+  getAuthClient() {
+    return this.authClient;
+  }
+
+  async authorize() {
+    try {
+      const accessToken = (await this.authClient.getAccessToken()).token;
+
+      if (accessToken == null) {
+        throw new Error('Access token is null');
+      }
+
+      const tokenInfo = await this.authClient.getTokenInfo(accessToken);
+      const expiryDate = tokenInfo.expiry_date;
+      const now = Date.now();
+
+      if (expiryDate < now) {
+        return await this.authClient.refreshAccessToken();
+      }
+
+      return accessToken;
+    } catch {
+      return await this.loginGoogle();
+    }
+  }
+
+  private async loginGoogle() {
     if (Platform.isDesktop) {
+      // eslint-disable-next-line @typescript-eslint/no-var-requires
       const http = require('http');
+      // eslint-disable-next-line @typescript-eslint/no-var-requires
       const url = require('url');
 
-      const oAuth2Client = new OAuth2Client(clientId, clientSecret, GTaskAuthorization.REDIRECT_URI);
-
-      const authorizeUrl = oAuth2Client.generateAuthUrl({
+      const authorizeUrl = this.authClient.generateAuthUrl({
         scope: GTaskAuthorization.SCOPES,
         access_type: 'offline',
         prompt: 'consent',
       });
 
-      return new Promise<GTaskAuthData>((resolve, reject) => {
+      return new Promise<void>((resolve, reject) => {
         const server = http
           .createServer(async (req: any, res: any) => {
-            try {
-              if (req.url.indexOf('/callback') > -1) {
-                const qs = new url.URL(req.url, GTaskAuthorization.SERVER_URI).searchParams;
-                const code = qs.get('code');
-                res.end('Authentication successful! Please return to obsidian.');
+            if (req.url.indexOf('/callback') > -1) {
+              const qs = new url.URL(req.url, GTaskAuthorization.SERVER_URI).searchParams;
+              const code = qs.get('code');
+              res.end('Authentication successful! Please return to obsidian.');
 
-                try {
-                  const tokens = (await oAuth2Client.getToken(code)).tokens;
-                  server.close();
-                  if (!tokens.access_token || !tokens.refresh_token) {
-                    reject(
-                      new Error(
-                        'Missing required token fields: ' +
-                          JSON.stringify({
-                            access_token: tokens.access_token,
-                            refresh_token: tokens.refresh_token,
-                            expiry_date: tokens.expiry_date,
-                          }),
-                      ),
-                    );
-                    return;
-                  }
-                  resolve(
-                    new GTaskAuthData(
-                      tokens.access_token,
-                      tokens.refresh_token,
-                      clientId,
-                      clientSecret,
-                      tokens.expiry_date ? (tokens.expiry_date - Date.now()) / 1000 : 3600,
-                    ),
-                  );
-                } catch (err) {
-                  reject(err);
-                }
+              if (code == null) {
+                reject(new Error('Missing required token fields: ' + JSON.stringify(code)));
+                return;
               }
-            } catch (e) {
-              reject(e);
+
+              const tokens = (await this.authClient.getToken(code)).tokens;
+              this.authClient.setCredentials(tokens);
+              this.persistedCredentials.set(tokens);
+
+              server.close();
+              resolve();
             }
           })
           .listen(GTaskAuthorization.SERVER_PORT, () => {
