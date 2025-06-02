@@ -4,7 +4,7 @@ import { TaskController } from './controllers/TaskController';
 import { GTaskMockRemote } from './models/remote/GTask/GTaskMockRemote';
 import { TaskRepository } from './repositories/TaskRepository';
 import { SettingTab } from './views/SettingTab';
-import { SyncButtonExtension } from './views/SyncButtonExtension';
+import { SyncFromRemote } from './views/SyncFromRemoteButton';
 import { registerTurnIntoGoogleTaskCommand } from './commands/TurnIntoGoogleTaskCommand';
 
 export let pluginInstance: GTaskSyncPlugin;
@@ -51,7 +51,7 @@ export default class GTaskSyncPlugin extends Plugin {
     await this.loadSettings();
 
     // 옵시디언에서 특정한 텍스트 타입 인식하게 하기 , SYNC 버튼 추가
-    this.registerEditorExtension(SyncButtonExtension);
+    this.registerEditorExtension(SyncFromRemote);
 
     const ribbonIconEl = this.addRibbonIcon('dice', 'Sample Plugin', (evt: MouseEvent) => {
       // Called when the user clicks the icon.

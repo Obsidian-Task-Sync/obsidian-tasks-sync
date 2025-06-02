@@ -1,18 +1,16 @@
-// src/views/SyncButtonExtension.ts
-
 import { WidgetType, Decoration, EditorView } from '@codemirror/view';
 import { StateField, RangeSetBuilder } from '@codemirror/state';
 import { Notice, MarkdownView } from 'obsidian';
 import { getPluginInstance, getRemote } from 'src/main';
 
-class SyncButtonWidget extends WidgetType {
+class SyncFromRemoteWidget extends WidgetType {
   constructor(private id: string) {
     super();
   }
 
   toDOM(): HTMLElement {
     const button = document.createElement('button');
-    button.textContent = 'SYNC';
+    button.textContent = 'Sync from Remote';
     button.className = 'cm-sync-button';
 
     button.onclick = async () => {
@@ -52,7 +50,7 @@ class SyncButtonWidget extends WidgetType {
   }
 }
 
-export const SyncButtonExtension = StateField.define({
+export const SyncFromRemote = StateField.define({
   create() {
     return Decoration.none;
   },
@@ -69,7 +67,7 @@ export const SyncButtonExtension = StateField.define({
           pos + line.length,
           pos + line.length,
           Decoration.widget({
-            widget: new SyncButtonWidget(id),
+            widget: new SyncFromRemoteWidget(id),
             side: 1,
           }),
         );
