@@ -24,41 +24,41 @@ export class GTaskMockRemote implements Remote {
   constructor() {
     this.mockedItemsMap = new Map([
       [
-        '1',
+        'abc123',
         {
-          id: '1',
-          title: 'Test',
+          id: 'abc123',
+          title: '옵시디언 설치하기',
           status: 'needsAction',
           due: '2021-01-01',
           updated: '2021-01-01',
         },
       ],
       [
-        '2',
+        'def456',
         {
-          id: '2',
-          title: 'Test 2',
-          status: 'needsAction',
+          id: 'def456',
+          title: '노션 작성하기',
+          status: 'completed',
           due: '2021-01-02',
           updated: '2021-01-02',
         },
       ],
       [
-        '3',
+        'ghi789',
         {
-          id: '3',
-          title: 'Test 3',
+          id: 'ghi789',
+          title: '오픈소스 영상 촬영',
           status: 'needsAction',
           due: '2021-01-03',
           updated: '2021-01-03',
         },
       ],
       [
-        '4',
+        'jkl012',
         {
-          id: '4',
-          title: 'Test 4',
-          status: 'needsAction',
+          id: 'jkl012',
+          title: '운영체제 과제 제출',
+          status: 'completed',
           due: '2021-01-04',
           updated: '2021-01-04',
         },
