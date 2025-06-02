@@ -33,11 +33,15 @@ export class TaskRepository {
         const cached = tasksByFilePath.get(id);
 
         if (cached != null) {
-          cached.setStatus(status === 'x' ? 'completed' : 'needsAction');
-          cached.setTitle(title);
+          const isStatusUpdated = cached.status !== (status === 'x' ? 'completed' : 'needsAction');
+          const isTitleUpdated = cached.title !== title;
 
-          tasksByFilePath.set(id, cached);
-          result.updated.push(cached);
+          if (isStatusUpdated || isTitleUpdated) {
+            cached.setStatus(status === 'x' ? 'completed' : 'needsAction');
+            cached.setTitle(title);
+
+            result.updated.push(cached);
+          }
         } else {
           const taskStatus: TaskStatus = status === 'x' ? 'completed' : 'needsAction';
           const task = new Task(id, tasklistId, title, taskStatus);
