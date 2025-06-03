@@ -39,7 +39,7 @@
 
 5. **Task 동기화**
 
-- 명령어 팔레트(Command Palette)에서 "Turn into Google Task" 또는 "동기화" 명령을 실행합니다.
+- 명령어 팔레트(Command Palette)에서 "Turn into Google Task" 명령을 실행합니다.
 - 마크다운 문서 내 Task가 Google Tasks와 동기화됩니다.
 
 ## 마크다운 Task 포맷
@@ -56,3 +56,4 @@
 
 - 외부기여를 환영합니다.
 - 자세한 API 문서는 [Obsidian API 문서](https://github.com/obsidianmd/obsidian-api)를 참고하세요.
+- TODO : Contributing.md 작성하기
