@@ -37,7 +37,7 @@
   - plugin 설정창에서 클라이언트 비밀번호를 복사해 Google API Secret에 입력합니다.
 - 이후 로그인 버튼을 눌러서 본인의
 
-## Features
+## Feature Details
 
 - Task 등록 (Obsidian -> Google Task)
   - Google Task로 관리하고 싶은 작업을 드래그합니다.
