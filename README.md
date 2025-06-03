@@ -45,8 +45,8 @@
 ## 마크다운 Task 포맷
 
 ```markdown
-- [ ] [Task 제목](gtask:task-id)
-- [x] [완료된 Task](gtask:task-id)
+- [ ] [Task 제목](gtask:task-list-id:task-id)
+- [x] [완료된 Task](gtask:task-list-id:task-id)
 ```
 
 - `[ ]` : 미완료, `[x]` : 완료
