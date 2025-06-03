@@ -26,16 +26,21 @@
 
 3. 본인의 gmail을 GCP에 등록하기
 
-- 이후 등록할 Google Task 에 사용할 Google 계정을 GCP에서 등록해야 합니다.
-- OAuth 동의화면 -> 대상에서 본인의 gmail을 입력합니다.
-- 최종 입력상태는 아래와 같습니다.
+- 이후 등록할 Google Task 에 사용할 Google 계정을 GCP에서 등록해야 합니다.(계정은 여러개 등록 가능합니다.)
+- `OAuth 동의화면` -> `대상`에서 본인의 gmail을 입력합니다.
+  - gmail을 입력하는 대신 `앱 게시` 버튼을 통해 프로덕션 상태로 수정할 순 있지만 그런 경우, 로그인시 경고문구가 뜨게 됩니다.
+- 최종 입력상태는 아래와 같습니다.![add email on gcp](docs/images/gcp-test-user-register.png)
 
-4. **Google API 인증 정보 입력**
+4. Google Tasks API 사용 설정
 
-- 이 그림처럼 생성된 곳에서 아래와 같은 설정 값을 복사합니다.![alt text](docs/images/client-id.png)
+- Google cloud project에서 아래 그림과 같이 Google Task API를 사용으로 바꿉니다.![Google Task API](docs/images/gtask-api-turnon.png)
+
+5. Google API 인증 정보 입력
+
+- 이 그림처럼 oauth에서 아래와 같은 설정 값을 복사합니다.![alt text](docs/images/client-id.png)
   - plugin 설정창에서 클라이언트 ID을 복사해 Google API Client ID에 입력합니다.
   - plugin 설정창에서 클라이언트 비밀번호를 복사해 Google API Secret에 입력합니다.
-- 이후 로그인 버튼을 눌러서 본인의
+- 이후 로그인 버튼을 눌러서 본인이 3번 단계에서 설정한 google 계정으로 로그인하면 됩니다. 로그인이 정상적으로 되면 설정이 끝납니다.
 
 ## Feature Details
 
