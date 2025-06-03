@@ -22,7 +22,7 @@
 - 애플리케이션 유형을 Web Application으로 선택합니다.
 - 승인된 자바 스크립트 원본에 `http://127.0.0.1:42813`을 등록합니다.
 - 승인된 리디렉션 URI에 `http://127.0.0.1:42813/callback`을 등록합니다.
-- 최종적으로 OAuth 클라이언트 ID를 만들 떄 아래 사진처럼 나옵니다. ![GCP proejct 사진](image.png)
+- 최종적으로 OAuth 클라이언트 ID를 만들 떄 아래 사진처럼 나옵니다. ![GCP proejct 사진](docs/images/create-oauth-client.png)
 
 3. 본인의 gmail을 GCP에 등록하기
 
@@ -32,7 +32,7 @@
 
 4. **Google API 인증 정보 입력**
 
-- 이 그림처럼 생성된 곳에서 아래와 같은 설정 값을 복사합니다.![alt text](image-1.png)
+- 이 그림처럼 생성된 곳에서 아래와 같은 설정 값을 복사합니다.![alt text](docs/images/client-id.png)
   - plugin 설정창에서 클라이언트 ID을 복사해 Google API Client ID에 입력합니다.
   - plugin 설정창에서 클라이언트 비밀번호를 복사해 Google API Secret에 입력합니다.
 - 이후 로그인 버튼을 눌러서 본인의
