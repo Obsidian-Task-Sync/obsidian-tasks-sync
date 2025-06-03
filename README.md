@@ -37,10 +37,17 @@
   - plugin 설정창에서 클라이언트 비밀번호를 복사해 Google API Secret에 입력합니다.
 - 이후 로그인 버튼을 눌러서 본인의
 
-5. **Task 동기화**
+## Features
 
-- 명령어 팔레트(Command Palette)에서 "Turn into Google Task" 명령을 실행합니다.
-- 마크다운 문서 내 Task가 Google Tasks와 동기화됩니다.
+- Task 등록 (Obsidian -> Google Task)
+  - Google Task로 관리하고 싶은 작업을 드래그합니다.
+  - Command Palette에서 "Turn into Google Task" 명령을 실행합니다.
+  - 마크다운 문서 내 Task가 Google Tasks에 등록되고 동기화 관리 대상이 됩니다.
+- Task 동기화 (Obsidian -> Google Task)
+  - 등록한 Task를 obsidian에서 수정하면(name update, status update) 주기적으로 이를 감지하고 Google Tasks에 반영
+- Task 동기화 (Google Task -> Obsidian)
+  - 등록한 Task를 Google Task에서 업데이트하고 이를 obsidian에 있는 버튼을 누르면 Google Tasks -> Obsidian으로 업데이트 반영![Task 동기화 예시](docs/images/gtask-to-obsidian-sync.png)
+  - 추후 해당 버튼 없어도 동기화되도록 수정
 
 ## 마크다운 Task 포맷
 
@@ -50,10 +57,10 @@
 ```
 
 - `[ ]` : 미완료, `[x]` : 완료
-- `gtask:task-id`는 Google Task의 고유 ID입니다.
+- `gtask:task-list-id:task-id`는 Google Task의 고유 ID입니다.
 
 ## 기여 및 문의
 
 - 외부기여를 환영합니다.
 - 자세한 API 문서는 [Obsidian API 문서](https://github.com/obsidianmd/obsidian-api)를 참고하세요.
-- TODO : Contributing.md 작성하기
+- TBD : Contributing.md 작성하기
