@@ -1,24 +1,20 @@
+import { Extension } from '@codemirror/state';
 import { merge } from 'es-toolkit';
 import { App, Editor, MarkdownView, Modal, Notice, Plugin, PluginManifest } from 'obsidian';
+import { registerTurnIntoGoogleTaskCommand } from './commands/TurnIntoGoogleTaskCommand';
 import { TaskController } from './controllers/TaskController';
-import { GTaskMockRemote } from './models/remote/GTask/GTaskMockRemote';
+import { GTaskRemote } from './models/remote/gtask/GTaskRemote';
 import { TaskRepository } from './repositories/TaskRepository';
 import { SettingTab } from './views/SettingTab';
-import { SyncFromRemote } from './views/SyncFromRemoteButton';
-import { registerTurnIntoGoogleTaskCommand } from './commands/TurnIntoGoogleTaskCommand';
-
-export let pluginInstance: GTaskSyncPlugin;
-//테스트용 MockRemote() 연결, 실제로는 GTaskRemote를 사용해야 합니다.
-export let remote: GTaskMockRemote;
+import { createSyncFromRemoteExtension } from './views/SyncFromRemoteButton';
 
 export interface GTaskSyncPluginSettings {
   mySetting: string;
   ownAuthenticationClient: boolean;
-  googleClientId: string;
-  googleClientSecret: string;
+  googleClientId?: string;
+  googleClientSecret?: string;
   isLoggedIn: boolean;
   useGoogleCalendarSync: boolean;
-  googleRedirectUrl: string;
 }
 
 const DEFAULT_SETTINGS: GTaskSyncPluginSettings = {
@@ -28,30 +24,33 @@ const DEFAULT_SETTINGS: GTaskSyncPluginSettings = {
   googleClientSecret: '',
   isLoggedIn: false,
   useGoogleCalendarSync: true,
-  googleRedirectUrl: 'https://redirect.url',
 };
 
 export default class GTaskSyncPlugin extends Plugin {
   settings: GTaskSyncPluginSettings;
 
+  remote: GTaskRemote;
   taskRepo: TaskRepository;
   taskController: TaskController;
+
+  extensions: Extension[] = [];
 
   constructor(app: App, manifest: PluginManifest) {
     super(app, manifest);
 
-    this.taskRepo = new TaskRepository(app, remote);
+    this.remote = new GTaskRemote(this);
+
+    this.taskRepo = new TaskRepository(app, this.remote);
     this.taskController = new TaskController(app, this.taskRepo);
+
+    (window as any).test = this;
   }
 
   async onload() {
-    // eslint-disable-next-line @typescript-eslint/no-this-alias
-    pluginInstance = this;
-    remote = new GTaskMockRemote();
     await this.loadSettings();
 
     // 옵시디언에서 특정한 텍스트 타입 인식하게 하기 , SYNC 버튼 추가
-    this.registerEditorExtension(SyncFromRemote);
+    this.extensions.push(createSyncFromRemoteExtension(this));
 
     const ribbonIconEl = this.addRibbonIcon('dice', 'Sample Plugin', (evt: MouseEvent) => {
       // Called when the user clicks the icon.
@@ -104,22 +103,19 @@ export default class GTaskSyncPlugin extends Plugin {
     // This adds a settings tab so the user can configure various aspects of the plugin
     this.addSettingTab(new SettingTab(this.app, this));
 
-    // If the plugin hooks up any global DOM events (on parts of the app that doesn't belong to this plugin)
-    // Using this function will automatically remove the event listener when this plugin is disabled.
-    this.registerDomEvent(document, 'click', (evt: MouseEvent) => {
-      console.log('click', evt);
-    });
-
     // When registering intervals, this function will automatically clear the interval when the plugin is disabled.
     this.registerInterval(window.setInterval(() => console.log('setInterval'), 5 * 60 * 1000));
 
     registerTurnIntoGoogleTaskCommand(this);
 
     this.taskController.init();
+    this.remote.init();
+    this.extensions.forEach((extension) => this.registerEditorExtension(extension));
   }
 
   onunload() {
     this.taskController.dispose();
+    this.remote.dispose();
   }
 
   async loadSettings() {
@@ -129,10 +125,6 @@ export default class GTaskSyncPlugin extends Plugin {
   async updateSettings(settings: Partial<GTaskSyncPluginSettings>) {
     this.settings = merge(this.settings, settings);
     await this.saveData(this.settings);
-  }
-
-  getTask(id: string) {
-    return remote.get(id);
   }
 }
 
@@ -150,12 +142,4 @@ class SampleModal extends Modal {
     const { contentEl } = this;
     contentEl.empty();
   }
-}
-
-export function getPluginInstance() {
-  return pluginInstance;
-}
-
-export function getRemote() {
-  return remote;
 }

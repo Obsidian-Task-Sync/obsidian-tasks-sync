@@ -3,6 +3,7 @@ import { Remote } from '../Remote';
 
 export interface GTaskItem {
   id: string;
+  tasklistId: string;
   title: string;
   status: 'needsAction' | 'completed';
   due?: string;
@@ -27,6 +28,7 @@ export class GTaskMockRemote implements Remote {
         'abc123',
         {
           id: 'abc123',
+          tasklistId: '1',
           title: '옵시디언 설치하기',
           status: 'needsAction',
           due: '2021-01-01',
@@ -37,6 +39,7 @@ export class GTaskMockRemote implements Remote {
         'def456',
         {
           id: 'def456',
+          tasklistId: '1',
           title: '노션 작성하기',
           status: 'completed',
           due: '2021-01-02',
@@ -47,6 +50,7 @@ export class GTaskMockRemote implements Remote {
         'ghi789',
         {
           id: 'ghi789',
+          tasklistId: '1',
           title: '오픈소스 영상 촬영',
           status: 'needsAction',
           due: '2021-01-03',
@@ -57,6 +61,7 @@ export class GTaskMockRemote implements Remote {
         'jkl012',
         {
           id: 'jkl012',
+          tasklistId: '1',
           title: '운영체제 과제 제출',
           status: 'completed',
           due: '2021-01-04',
@@ -66,7 +71,7 @@ export class GTaskMockRemote implements Remote {
     ]);
   }
 
-  get(id: string) {
+  get(id: string, tasklistId: string) {
     const item = this.mockedItemsMap.get(id);
 
     if (item == null) {
@@ -76,11 +81,7 @@ export class GTaskMockRemote implements Remote {
     return Promise.resolve(mapToTask(item));
   }
 
-  list() {
-    return Promise.resolve(this.mockedItems.map(mapToTask));
-  }
-
-  update(from: Task): Promise<void> {
+  update(id: string, tasklistId: string, from: Task): Promise<void> {
     const item = this.mockedItemsMap.get(from.id) ?? defaultItem;
 
     this.mockedItemsMap.set(from.id, {
@@ -95,11 +96,12 @@ export class GTaskMockRemote implements Remote {
 }
 
 function mapToTask(item: GTaskItem): Task {
-  return new Task(item.id, item.title, item.status);
+  return new Task(item.id, item.tasklistId, item.title, item.status);
 }
 
 const defaultItem: GTaskItem = {
   id: '',
+  tasklistId: '',
   title: '',
   status: 'needsAction',
   updated: new Date().toISOString(),
