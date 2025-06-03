@@ -32,7 +32,7 @@ export class SettingTab extends PluginSettingTab {
         .addText((text) =>
           text
             .setPlaceholder('Enter your client id')
-            .setValue(this.plugin.settings.googleClientId)
+            .setValue(this.plugin.settings.googleClientId ?? '')
             .onChange((value) => {
               this.update({ googleClientId: value.trim() });
             }),
@@ -44,28 +44,20 @@ export class SettingTab extends PluginSettingTab {
         .addText((text) =>
           text
             .setPlaceholder('Enter your client secret')
-            .setValue(this.plugin.settings.googleClientSecret)
+            .setValue(this.plugin.settings.googleClientSecret ?? '')
             .onChange((value) => {
               this.update({ googleClientSecret: value.trim() });
             }),
         );
     }
 
-    new Setting(containerEl).setName('Google Login').addButton((button) => {
-      button.setButtonText(this.plugin.settings.isLoggedIn ? 'Logout' : 'Login').onClick(() => {
+    new Setting(containerEl).setName('Login').addButton((button) => {
+      button.setButtonText(this.plugin.settings.isLoggedIn ? 'Logout' : 'Login').onClick(async () => {
         this.hide();
         this.display();
+        await this.plugin.remote.authorize();
       });
     });
-
-    new Setting(containerEl)
-      .setName('Google Redirct url')
-      .setDesc('The url to the server where the oauth takes place')
-      .addText((text) => {
-        text.setValue(this.plugin.settings.googleRedirectUrl).onChange((value) => {
-          this.update({ googleRedirectUrl: value.trim() });
-        });
-      });
   }
 
   async update(settings: Partial<GTaskSyncPluginSettings>) {

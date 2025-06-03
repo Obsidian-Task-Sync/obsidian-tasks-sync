@@ -1,19 +1,18 @@
 import { merge } from 'es-toolkit';
 import { App, Editor, MarkdownView, Modal, Notice, Plugin, PluginManifest } from 'obsidian';
+import { registerTurnIntoGoogleTaskCommand } from './commands/TurnIntoGoogleTaskCommand';
 import { TaskController } from './controllers/TaskController';
-import { GTaskMockRemote } from './models/remote/GTask/GTaskMockRemote';
+import { GTaskRemote } from './models/remote/gtask/GTaskRemote';
 import { TaskRepository } from './repositories/TaskRepository';
 import { SettingTab } from './views/SettingTab';
-import { registerTurnIntoGoogleTaskCommand } from './commands/TurnIntoGoogleTaskCommand';
 
 export interface GTaskSyncPluginSettings {
   mySetting: string;
   ownAuthenticationClient: boolean;
-  googleClientId: string;
-  googleClientSecret: string;
+  googleClientId?: string;
+  googleClientSecret?: string;
   isLoggedIn: boolean;
   useGoogleCalendarSync: boolean;
-  googleRedirectUrl: string;
 }
 
 const DEFAULT_SETTINGS: GTaskSyncPluginSettings = {
@@ -23,21 +22,24 @@ const DEFAULT_SETTINGS: GTaskSyncPluginSettings = {
   googleClientSecret: '',
   isLoggedIn: false,
   useGoogleCalendarSync: true,
-  googleRedirectUrl: 'https://redirect.url',
 };
 
 export default class GTaskSyncPlugin extends Plugin {
   settings: GTaskSyncPluginSettings;
 
+  remote: GTaskRemote;
   taskRepo: TaskRepository;
   taskController: TaskController;
 
   constructor(app: App, manifest: PluginManifest) {
     super(app, manifest);
 
-    const remote = new GTaskMockRemote();
-    this.taskRepo = new TaskRepository(app, remote);
+    this.remote = new GTaskRemote(this);
+
+    this.taskRepo = new TaskRepository(app, this.remote);
     this.taskController = new TaskController(app, this.taskRepo);
+
+    (window as any).test = this;
   }
 
   async onload() {
@@ -106,10 +108,12 @@ export default class GTaskSyncPlugin extends Plugin {
     registerTurnIntoGoogleTaskCommand(this);
 
     this.taskController.init();
+    this.remote.init();
   }
 
   onunload() {
     this.taskController.dispose();
+    this.remote.dispose();
   }
 
   async loadSettings() {
