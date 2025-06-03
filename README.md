@@ -51,7 +51,8 @@
 - Task 동기화 (Obsidian -> Google Task)
   - 등록한 Task를 obsidian에서 수정하면(name update, status update) 주기적으로 이를 감지하고 Google Tasks에 반영
 - Task 동기화 (Google Task -> Obsidian)
-  - 등록한 Task를 Google Task에서 업데이트하고 이를 obsidian에 있는 버튼을 누르면 Google Tasks -> Obsidian으로 업데이트 반영![Task 동기화 예시](docs/images/gtask-to-obsidian-sync.png)
+  - 등록한 Task를 Google Task에서 업데이트하고 이를 obsidian에 있는 버튼을 누르면 Google Tasks -> Obsidian으로 업데이트 반영
+    ![Task 동기화 예시](docs/images/gtask-to-obsidian-sync.png)
   - 추후 해당 버튼 없어도 동기화되도록 수정
 
 ## 마크다운 Task 포맷
