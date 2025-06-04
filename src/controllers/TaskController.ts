@@ -1,25 +1,25 @@
 import { debounce } from 'es-toolkit';
 import { App, TFile } from 'obsidian';
-import { TaskRepository } from '../repositories/TaskRepository';
+import { FileRepository } from 'src/repositories/FileRepository';
 
 export class TaskController {
   private abortController = new AbortController();
 
   constructor(
     private readonly app: App,
-    private readonly repository: TaskRepository,
+    private readonly fileRepo: FileRepository,
   ) {}
 
   init(): void {
     const fileOpenEvent = this.app.workspace.on('file-open', async (file: TFile | null) => {
-      if (file) {
-        await this.repository.scanFile(file);
+      if (file != null) {
+        await this.fileRepo.get(file.path)?.scan();
       }
     });
 
     const fileSaveEvent = this.app.vault.on(
       'modify',
-      debounce((file) => this.repository.scanFile(file), 300, { signal: this.abortController.signal }),
+      debounce((file) => this.fileRepo.get(file.path)?.scan(), 300, { signal: this.abortController.signal }),
     );
 
     this.abortController.signal.addEventListener('abort', () => {

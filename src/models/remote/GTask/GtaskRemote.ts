@@ -1,7 +1,7 @@
 import { assert } from 'es-toolkit';
 import { google, tasks_v1 } from 'googleapis';
-import { Notice } from 'obsidian';
-import GTaskSyncPlugin from 'src/main';
+import { App, Notice } from 'obsidian';
+import { GTaskSyncPluginSettings } from 'src/main';
 import { Task } from '../../Task';
 import { Remote } from '../Remote';
 import { GTaskAuthorization } from './GTaskAuthorization';
@@ -10,18 +10,17 @@ export class GTaskRemote implements Remote {
   private _auth?: GTaskAuthorization;
   private _client?: tasks_v1.Tasks;
 
-  constructor(private plugin: GTaskSyncPlugin) {}
+  constructor(
+    private app: App,
+    private settings: GTaskSyncPluginSettings,
+  ) {}
 
   async init() {
-    if (this.plugin.settings.googleClientId == null || this.plugin.settings.googleClientSecret == null) {
+    if (this.settings.googleClientId == null || this.settings.googleClientSecret == null) {
       return;
     }
 
-    this._auth = new GTaskAuthorization(
-      this.plugin.app,
-      this.plugin.settings.googleClientId,
-      this.plugin.settings.googleClientSecret,
-    );
+    this._auth = new GTaskAuthorization(this.app, this.settings.googleClientId, this.settings.googleClientSecret);
     this._client = google.tasks({
       version: 'v1',
       auth: this._auth.getAuthClient(),

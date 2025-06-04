@@ -1,23 +1,55 @@
 import { App, TFile } from 'obsidian';
 import { getGTaskLineMeta } from 'src/libs/regexp';
 import { Remote } from 'src/models/remote/Remote';
-import { Task } from '../models/Task';
+import { Task } from 'src/models/Task';
+
+export class FileRepository {
+  private files: Map<string, File> = new Map();
+
+  constructor(
+    private app: App,
+    private remote: Remote,
+  ) {}
+
+  get(path: string): File | undefined {
+    const file = this.files.get(path);
+
+    if (file == null) {
+      const tFile = this.app.vault.getFileByPath(path);
+      if (tFile == null) {
+        return undefined;
+      }
+
+      const file = new File(this.app, this.remote, tFile);
+      this.files.set(path, file);
+    }
+
+    return file;
+  }
+}
 
 interface ScanFileResult {
   added: Task[];
   updated: Task[];
 }
 
-export class TaskRepository {
-  private tasksByFilePath: Map<string, Map<string, Task>> = new Map();
+type TaskKey = `${string}:${string}`;
+
+export class File {
+  private tasks: Map<TaskKey, Task> = new Map();
 
   constructor(
-    private readonly app: App,
+    private app: App,
     private remote: Remote,
+    private file: TFile,
   ) {}
 
-  async scanFile(file: TFile): Promise<ScanFileResult> {
-    const content = await this.app.vault.read(file);
+  getTask(id: string, tasklistId: string): Task | undefined {
+    return this.tasks.get(`${id}:${tasklistId}`);
+  }
+
+  async scan(): Promise<void> {
+    const content = await this.app.vault.read(this.file);
     const lines = content.split('\n');
 
     const result: ScanFileResult = {
@@ -25,14 +57,12 @@ export class TaskRepository {
       updated: [],
     };
 
-    const tasksByFilePath = this.getTasksByFilePath(file.path);
-
     for (const line of lines) {
       const meta = getGTaskLineMeta(line);
 
       if (meta != null) {
         const { status, title, tasklistId, id } = meta;
-        const cached = tasksByFilePath.get(id);
+        const cached = this.tasks.get(`${id}:${tasklistId}`);
 
         if (cached != null) {
           const isStatusUpdated = cached.status !== status;
@@ -47,34 +77,18 @@ export class TaskRepository {
         } else {
           const task = new Task(id, tasklistId, title, status);
 
-          tasksByFilePath.set(id, task);
+          this.tasks.set(`${id}:${tasklistId}`, task);
           result.added.push(task);
         }
       }
     }
 
-    for (const task of tasksByFilePath.values()) {
+    for (const task of this.tasks.values()) {
       if (!lines.some((line) => line.includes(`gtask:${task.tasklistId}:${task.id}`))) {
-        tasksByFilePath.delete(task.id);
+        this.tasks.delete(`${task.id}:${task.tasklistId}`);
       }
     }
 
     await Promise.all(result.updated.map((task) => this.remote.update(task.id, task.tasklistId, task)));
-    return result;
-  }
-
-  async syncWithDataSource(): Promise<void> {
-    throw new Error('Not implemented');
-  }
-
-  private getTasksByFilePath(filePath: string): Map<string, Task> {
-    let tasksByFilePath = this.tasksByFilePath.get(filePath);
-
-    if (tasksByFilePath == null) {
-      tasksByFilePath = new Map();
-      this.tasksByFilePath.set(filePath, tasksByFilePath);
-    }
-
-    return tasksByFilePath;
   }
 }
