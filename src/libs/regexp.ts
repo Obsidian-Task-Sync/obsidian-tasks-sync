@@ -21,8 +21,3 @@ export function getGTaskLineMeta(line: string): GTaskLineMeta | null {
   }
   return null;
 }
-
-export function createGTaskLine(meta: GTaskLineMeta): string {
-  const status = meta.status === 'completed' ? 'x' : ' ';
-  return `- [${status}] [${meta.title}](gtask:${meta.tasklistId}:${meta.id})`;
-}

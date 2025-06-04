@@ -1,7 +1,7 @@
 import { Extension, RangeSetBuilder, StateField } from '@codemirror/state';
 import { Decoration, EditorView, WidgetType } from '@codemirror/view';
 import { MarkdownView, Notice } from 'obsidian';
-import { createGTaskLine, getGTaskLineMeta, GTaskLineMeta } from 'src/libs/regexp';
+import { getGTaskLineMeta, GTaskLineMeta } from 'src/libs/regexp';
 import GTaskSyncPlugin from 'src/main';
 import { TaskRepository } from 'src/repositories/TaskRepository';
 
@@ -78,13 +78,11 @@ class SyncFromRemoteWidget extends WidgetType {
 
       try {
         const task = await this.plugin.remote.get(this.meta.id, this.meta.tasklistId);
-        const newLine = createGTaskLine({
-          ...task,
-          tasklistId: this.meta.tasklistId,
-        });
 
         task.setTitle(this.meta.title);
         task.setStatus(this.meta.status);
+
+        const newLine = task.toMarkdown();
 
         markdownView.editor.setLine(this.index, newLine);
         new Notice(`동기화됨`);
