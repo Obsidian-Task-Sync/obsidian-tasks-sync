@@ -1,10 +1,15 @@
-import { Editor, MarkdownView, Notice, Plugin } from 'obsidian';
+import { Editor, MarkdownView, Notice } from 'obsidian';
+import { GTaskRemote } from 'src/models/remote/GTask/GTaskRemote';
+import { GTaskCreator } from 'src/models/remote/GTask/GTaskCreator';
+import GTaskSyncPlugin from '../main';
 
-export function registerTurnIntoGoogleTaskCommand(plugin: Plugin) {
+export function registerTurnIntoGoogleTaskCommand(plugin: GTaskSyncPlugin): void {
+  const remote = new GTaskRemote(plugin);
+
   plugin.addCommand({
     id: 'turn-into-google-task',
     name: 'Turn into Google Task',
-    editorCallback: (editor: Editor, view: MarkdownView) => {
+    editorCallback: async (editor: Editor, view: MarkdownView) => {
       const selectedText = editor.getSelection().trim();
 
       if (!selectedText) {
@@ -12,8 +17,16 @@ export function registerTurnIntoGoogleTaskCommand(plugin: Plugin) {
         return;
       }
 
-      console.log('선택된 문구:', selectedText);
-      //드래그한 selectedText Control하는 부분
+      try {
+        await remote.init();
+        await remote.authorize();
+
+        const creator = new GTaskCreator(remote);
+        await creator.createFromText(selectedText);
+      } catch (err) {
+        console.error('Task 생성 실패:', err);
+        new Notice('Google Task 생성 중 오류가 발생했습니다.');
+      }
     },
   });
 }
