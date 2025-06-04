@@ -1,6 +1,7 @@
 import { App, TFile } from 'obsidian';
+import { getGTaskLineMeta } from 'src/libs/regexp';
 import { Remote } from 'src/models/remote/Remote';
-import { Task, TaskStatus } from '../models/Task';
+import { Task } from '../models/Task';
 
 interface ScanFileResult {
   added: Task[];
@@ -27,24 +28,24 @@ export class TaskRepository {
     const tasksByFilePath = this.getTasksByFilePath(file.path);
 
     for (const line of lines) {
-      const match = line.match(/- \[(.+?)\] \[(.+?)\]\(gtask:([^)]+):([^)]+)\)/);
-      if (match) {
-        const [, status, title, tasklistId, id] = match;
+      const meta = getGTaskLineMeta(line);
+
+      if (meta != null) {
+        const { status, title, tasklistId, id } = meta;
         const cached = tasksByFilePath.get(id);
 
         if (cached != null) {
-          const isStatusUpdated = cached.status !== (status === 'x' ? 'completed' : 'needsAction');
+          const isStatusUpdated = cached.status !== status;
           const isTitleUpdated = cached.title !== title;
 
           if (isStatusUpdated || isTitleUpdated) {
-            cached.setStatus(status === 'x' ? 'completed' : 'needsAction');
+            cached.setStatus(status);
             cached.setTitle(title);
 
             result.updated.push(cached);
           }
         } else {
-          const taskStatus: TaskStatus = status === 'x' ? 'completed' : 'needsAction';
-          const task = new Task(id, tasklistId, title, taskStatus);
+          const task = new Task(id, tasklistId, title, status);
 
           tasksByFilePath.set(id, task);
           result.added.push(task);
@@ -57,8 +58,6 @@ export class TaskRepository {
         tasksByFilePath.delete(task.id);
       }
     }
-
-    console.log(result.updated);
 
     await Promise.all(result.updated.map((task) => this.remote.update(task.id, task.tasklistId, task)));
     return result;
