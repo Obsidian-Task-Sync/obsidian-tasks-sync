@@ -3,6 +3,7 @@ import { Decoration, EditorView, WidgetType } from '@codemirror/view';
 import { MarkdownView, Notice } from 'obsidian';
 import { createGTaskLine, getGTaskLineMeta, GTaskLineMeta } from 'src/libs/regexp';
 import GTaskSyncPlugin from 'src/main';
+import { TaskRepository } from 'src/repositories/TaskRepository';
 
 // 위젯 캐시를 위한 클래스
 class WidgetCache {
@@ -26,6 +27,7 @@ class SyncFromRemoteWidget extends WidgetType {
   private static widgetIdCounter = 0;
   public readonly widgetId: string;
   private button: HTMLButtonElement | null = null;
+  private taskRepo: TaskRepository;
 
   constructor(
     private meta: GTaskLineMeta,
@@ -34,6 +36,7 @@ class SyncFromRemoteWidget extends WidgetType {
   ) {
     super();
     this.widgetId = `sync-widget-${SyncFromRemoteWidget.widgetIdCounter++}`;
+    this.taskRepo = plugin.taskRepo;
   }
 
   static create(meta: GTaskLineMeta, index: number, plugin: GTaskSyncPlugin): SyncFromRemoteWidget {
@@ -79,6 +82,9 @@ class SyncFromRemoteWidget extends WidgetType {
           ...task,
           tasklistId: this.meta.tasklistId,
         });
+
+        task.setTitle(this.meta.title);
+        task.setStatus(this.meta.status);
 
         markdownView.editor.setLine(this.index, newLine);
         new Notice(`동기화됨`);
