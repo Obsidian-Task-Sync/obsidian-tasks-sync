@@ -1,12 +1,15 @@
 import { App, PluginSettingTab, Setting } from 'obsidian';
 import GTaskSyncPlugin, { GTaskSyncPluginSettings } from 'src/main';
+import { Remote } from 'src/models/remote/Remote';
 
 export class SettingTab extends PluginSettingTab {
   private plugin: GTaskSyncPlugin;
+  private remote: Remote;
 
-  constructor(app: App, plugin: GTaskSyncPlugin) {
+  constructor(app: App, plugin: GTaskSyncPlugin, remote: Remote) {
     super(app, plugin);
     this.plugin = plugin;
+    this.remote = remote;
   }
 
   display(): void {
@@ -55,7 +58,7 @@ export class SettingTab extends PluginSettingTab {
       button.setButtonText(this.plugin.settings.isLoggedIn ? 'Logout' : 'Login').onClick(async () => {
         this.hide();
         this.display();
-        await this.plugin.remote.authorize();
+        await this.remote.authorize();
       });
     });
   }
