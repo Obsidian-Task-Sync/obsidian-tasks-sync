@@ -123,7 +123,7 @@ class SyncFromRemoteWidget extends WidgetType {
   }
 }
 
-export const createSyncFromRemoteExtension = (plugin: GTaskSyncPlugin): Extension => {
+export const createSyncFromRemoteExtension = (plugin: GTaskSyncPlugin, fileRepo: FileRepository): Extension => {
   return [
     EditorView.theme(
       {
@@ -154,7 +154,7 @@ export const createSyncFromRemoteExtension = (plugin: GTaskSyncPlugin): Extensio
               pos + line.length,
               pos + line.length,
               Decoration.widget({
-                widget: SyncFromRemoteWidget.create(meta, index, plugin),
+                widget: SyncFromRemoteWidget.create(meta, index, plugin.app.workspace, fileRepo),
                 side: 1,
               }),
             );

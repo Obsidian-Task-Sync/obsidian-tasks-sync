@@ -28,10 +28,10 @@ const DEFAULT_SETTINGS: GTaskSyncPluginSettings = {
 
 export default class GTaskSyncPlugin extends Plugin {
   private remote: GTaskRemote;
-  private settings: GTaskSyncPluginSettings;
-
   private fileRepo: FileRepository;
   private taskController: TaskController;
+
+  settings: GTaskSyncPluginSettings;
 
   extensions: Extension[] = [];
 
@@ -50,7 +50,7 @@ export default class GTaskSyncPlugin extends Plugin {
     await this.loadSettings();
 
     // 옵시디언에서 특정한 텍스트 타입 인식하게 하기 , SYNC 버튼 추가
-    this.extensions.push(createSyncFromRemoteExtension(this));
+    this.extensions.push(createSyncFromRemoteExtension(this, this.fileRepo));
 
     const ribbonIconEl = this.addRibbonIcon('dice', 'Sample Plugin', (evt: MouseEvent) => {
       // Called when the user clicks the icon.
@@ -101,7 +101,7 @@ export default class GTaskSyncPlugin extends Plugin {
     });
 
     // This adds a settings tab so the user can configure various aspects of the plugin
-    this.addSettingTab(new SettingTab(this.app, this));
+    this.addSettingTab(new SettingTab(this.app, this, this.remote));
 
     // When registering intervals, this function will automatically clear the interval when the plugin is disabled.
     this.registerInterval(window.setInterval(() => console.log('setInterval'), 5 * 60 * 1000));

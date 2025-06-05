@@ -71,6 +71,10 @@ export class GTaskMockRemote implements Remote {
     ]);
   }
 
+  async authorize(): Promise<void> {
+    console.log('Mock authorization successful');
+  }
+
   get(id: string, tasklistId: string) {
     const item = this.mockedItemsMap.get(id);
 
