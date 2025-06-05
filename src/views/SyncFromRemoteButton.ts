@@ -4,6 +4,7 @@ import { assert } from 'es-toolkit';
 import { MarkdownView, Notice, Workspace } from 'obsidian';
 import { getGTaskLineMeta, GTaskLineMeta } from 'src/libs/regexp';
 import GTaskSyncPlugin from 'src/main';
+import { Remote } from 'src/models/remote/Remote';
 import { FileRepository } from 'src/repositories/FileRepository';
 
 // 위젯 캐시를 위한 클래스
@@ -34,6 +35,7 @@ class SyncFromRemoteWidget extends WidgetType {
     private index: number,
     private workspace: Workspace,
     private fileRepo: FileRepository,
+    private remote: Remote,
   ) {
     super();
     this.widgetId = `sync-widget-${SyncFromRemoteWidget.widgetIdCounter++}`;
@@ -44,6 +46,7 @@ class SyncFromRemoteWidget extends WidgetType {
     index: number,
     workspace: Workspace,
     fileRepo: FileRepository,
+    remote: Remote,
   ): SyncFromRemoteWidget {
     const cacheKey = `${meta.id}-${meta.tasklistId}-${index}`;
     const cached = this.widgetCache.get(cacheKey);
@@ -52,7 +55,7 @@ class SyncFromRemoteWidget extends WidgetType {
       return cached;
     }
 
-    const widget = new SyncFromRemoteWidget(meta, index, workspace, fileRepo);
+    const widget = new SyncFromRemoteWidget(meta, index, workspace, fileRepo, remote);
     this.widgetCache.set(cacheKey, widget);
     return widget;
   }
@@ -86,11 +89,12 @@ class SyncFromRemoteWidget extends WidgetType {
         const task = file.getTask(this.meta.id, this.meta.tasklistId);
         assert(task != null, '태스크를 찾을 수 없습니다');
 
-        task.title = this.meta.title;
-        task.status = this.meta.status;
-
-        markdownView.editor.setLine(this.index, task.toMarkdown());
-        new Notice(`동기화됨`);
+        this.remote.get(this.meta.id, this.meta.tasklistId).then((remoteTask) => {
+          task.setTitle(remoteTask.title);
+          task.setStatus(remoteTask.status);
+          markdownView.editor.setLine(this.index, task.toMarkdown());
+          new Notice(`동기화됨`);
+        });
       } catch (e) {
         new Notice(`오류: ${e.message}`);
       }
@@ -123,7 +127,11 @@ class SyncFromRemoteWidget extends WidgetType {
   }
 }
 
-export const createSyncFromRemoteExtension = (plugin: GTaskSyncPlugin, fileRepo: FileRepository): Extension => {
+export const createSyncFromRemoteExtension = (
+  plugin: GTaskSyncPlugin,
+  fileRepo: FileRepository,
+  remote: Remote,
+): Extension => {
   return [
     EditorView.theme(
       {
@@ -154,7 +162,7 @@ export const createSyncFromRemoteExtension = (plugin: GTaskSyncPlugin, fileRepo:
               pos + line.length,
               pos + line.length,
               Decoration.widget({
-                widget: SyncFromRemoteWidget.create(meta, index, plugin.app.workspace, fileRepo),
+                widget: SyncFromRemoteWidget.create(meta, index, plugin.app.workspace, fileRepo, remote),
                 side: 1,
               }),
             );

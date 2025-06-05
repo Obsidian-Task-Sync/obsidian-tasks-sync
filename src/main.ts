@@ -51,7 +51,7 @@ export default class GTaskSyncPlugin extends Plugin {
     await this.fileRepo.initialize();
 
     // 옵시디언에서 특정한 텍스트 타입 인식하게 하기 , SYNC 버튼 추가
-    this.extensions.push(createSyncFromRemoteExtension(this, this.fileRepo));
+    this.extensions.push(createSyncFromRemoteExtension(this, this.fileRepo, this.remote));
 
     const ribbonIconEl = this.addRibbonIcon('dice', 'Sample Plugin', (evt: MouseEvent) => {
       // Called when the user clicks the icon.
