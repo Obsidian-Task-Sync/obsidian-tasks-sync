@@ -15,8 +15,8 @@ export function getGTaskLineMeta(line: string): GTaskLineMeta | null {
     return {
       status: match[1] === 'x' ? 'completed' : 'needsAction',
       title: match[2] as string,
-      tasklistId: match[3] as string,
-      id: match[4] as string,
+      id: match[3] as string,
+      tasklistId: match[4] as string,
     };
   }
   return null;

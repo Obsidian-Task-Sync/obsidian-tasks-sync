@@ -27,6 +27,6 @@ export class Task {
   }
 
   getIdentifier(): string {
-    return `${this.tasklistId}:${this.id}`;
+    return `${this.id}:${this.tasklistId}`;
   }
 }
