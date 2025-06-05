@@ -4,7 +4,7 @@ import { App, Editor, MarkdownView, Modal, Notice, Plugin, PluginManifest } from
 import { registerTurnIntoGoogleTaskCommand } from './commands/TurnIntoGoogleTaskCommand';
 import { TaskController } from './controllers/TaskController';
 import { GTaskRemote } from './models/remote/gtask/GTaskRemote';
-import { TaskRepository } from './repositories/TaskRepository';
+import { FileRepository } from './repositories/FileRepository';
 import { SettingTab } from './views/SettingTab';
 import { createSyncFromRemoteExtension } from './views/SyncFromRemoteButton';
 
@@ -27,21 +27,21 @@ const DEFAULT_SETTINGS: GTaskSyncPluginSettings = {
 };
 
 export default class GTaskSyncPlugin extends Plugin {
-  settings: GTaskSyncPluginSettings;
+  private remote: GTaskRemote;
+  private settings: GTaskSyncPluginSettings;
 
-  remote: GTaskRemote;
-  taskRepo: TaskRepository;
-  taskController: TaskController;
+  private fileRepo: FileRepository;
+  private taskController: TaskController;
 
   extensions: Extension[] = [];
 
   constructor(app: App, manifest: PluginManifest) {
     super(app, manifest);
 
-    this.remote = new GTaskRemote(this);
+    this.remote = new GTaskRemote(app, this.settings);
 
-    this.taskRepo = new TaskRepository(app, this.remote);
-    this.taskController = new TaskController(app, this.taskRepo);
+    this.fileRepo = new FileRepository(app, this.remote);
+    this.taskController = new TaskController(app, this.fileRepo);
 
     (window as any).test = this;
   }

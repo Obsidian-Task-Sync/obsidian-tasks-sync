@@ -1,9 +1,10 @@
 import { Extension, RangeSetBuilder, StateField } from '@codemirror/state';
 import { Decoration, EditorView, WidgetType } from '@codemirror/view';
-import { MarkdownView, Notice } from 'obsidian';
+import { assert } from 'es-toolkit';
+import { MarkdownView, Notice, Workspace } from 'obsidian';
 import { getGTaskLineMeta, GTaskLineMeta } from 'src/libs/regexp';
 import GTaskSyncPlugin from 'src/main';
-import { TaskRepository } from 'src/repositories/TaskRepository';
+import { FileRepository } from 'src/repositories/FileRepository';
 
 // 위젯 캐시를 위한 클래스
 class WidgetCache {
@@ -27,19 +28,23 @@ class SyncFromRemoteWidget extends WidgetType {
   private static widgetIdCounter = 0;
   public readonly widgetId: string;
   private button: HTMLButtonElement | null = null;
-  private taskRepo: TaskRepository;
 
   constructor(
     private meta: GTaskLineMeta,
     private index: number,
-    private plugin: GTaskSyncPlugin,
+    private workspace: Workspace,
+    private fileRepo: FileRepository,
   ) {
     super();
     this.widgetId = `sync-widget-${SyncFromRemoteWidget.widgetIdCounter++}`;
-    this.taskRepo = plugin.taskRepo;
   }
 
-  static create(meta: GTaskLineMeta, index: number, plugin: GTaskSyncPlugin): SyncFromRemoteWidget {
+  static create(
+    meta: GTaskLineMeta,
+    index: number,
+    workspace: Workspace,
+    fileRepo: FileRepository,
+  ): SyncFromRemoteWidget {
     const cacheKey = `${meta.id}-${meta.tasklistId}-${index}`;
     const cached = this.widgetCache.get(cacheKey);
 
@@ -47,7 +52,7 @@ class SyncFromRemoteWidget extends WidgetType {
       return cached;
     }
 
-    const widget = new SyncFromRemoteWidget(meta, index, plugin);
+    const widget = new SyncFromRemoteWidget(meta, index, workspace, fileRepo);
     this.widgetCache.set(cacheKey, widget);
     return widget;
   }
@@ -70,21 +75,21 @@ class SyncFromRemoteWidget extends WidgetType {
       e.stopPropagation();
       console.log('Button clicked directly!', this.meta.id);
 
-      const markdownView = this.plugin.app.workspace.getActiveViewOfType(MarkdownView);
-      if (markdownView == null) {
-        new Notice('Markdown 뷰를 찾을 수 없습니다');
-        return;
-      }
+      const markdownView = this.workspace.getActiveViewOfType(MarkdownView);
+      assert(markdownView != null, 'Markdown 뷰를 찾을 수 없습니다');
+      assert(markdownView.file != null, 'Markdown 파일을 찾을 수 없습니다');
 
       try {
-        const task = await this.plugin.remote.get(this.meta.id, this.meta.tasklistId);
+        const file = this.fileRepo.get(markdownView.file.path);
+        assert(file != null, '파일을 찾을 수 없습니다');
 
-        task.setTitle(this.meta.title);
-        task.setStatus(this.meta.status);
+        const task = file.getTask(this.meta.id, this.meta.tasklistId);
+        assert(task != null, '태스크를 찾을 수 없습니다');
 
-        const newLine = task.toMarkdown();
+        task.title = this.meta.title;
+        task.status = this.meta.status;
 
-        markdownView.editor.setLine(this.index, newLine);
+        markdownView.editor.setLine(this.index, task.toMarkdown());
         new Notice(`동기화됨`);
       } catch (e) {
         new Notice(`오류: ${e.message}`);
