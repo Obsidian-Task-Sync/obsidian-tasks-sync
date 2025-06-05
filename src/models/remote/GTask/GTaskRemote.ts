@@ -99,4 +99,20 @@ export class GTaskRemote implements Remote {
     assert(data.items != null, 'Tasks are null');
     return data.items;
   }
+
+  async create(title: string, tasklistId: string) {
+    const client = await this.assure();
+
+    const { data, status } = await client.tasks.insert({
+      tasklist: tasklistId,
+      requestBody: {
+        title,
+      },
+    });
+    assert(status === 200, 'Failed to create task');
+    assert(data.id != null, 'Task ID is null');
+    assert(data.title != null, 'Task title is null');
+
+    return new Task(data.id, tasklistId, data.title, 'needsAction');
+  }
 }
