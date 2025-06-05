@@ -23,7 +23,7 @@ export class Task {
 
   toMarkdown(): string {
     const status = this.status === 'completed' ? 'x' : ' ';
-    return `- [${status}] [${this.title}](gtask:${this.getIdentifier})`;
+    return `- [${status}] [${this.title}](gtask:${this.getIdentifier()})`;
   }
 
   getIdentifier(): string {

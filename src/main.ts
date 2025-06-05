@@ -38,16 +38,17 @@ export default class GTaskSyncPlugin extends Plugin {
   constructor(app: App, manifest: PluginManifest) {
     super(app, manifest);
 
-    this.remote = new GTaskRemote(app, this.settings);
-
-    this.fileRepo = new FileRepository(app, this.remote);
-    this.taskController = new TaskController(app, this.fileRepo);
-
     (window as any).test = this;
   }
 
   async onload() {
+    //initialize
     await this.loadSettings();
+    this.remote = new GTaskRemote(this.app, this.settings);
+    this.fileRepo = new FileRepository(this.app, this.remote);
+    this.taskController = new TaskController(this.app, this.fileRepo);
+
+    await this.fileRepo.initialize();
 
     // 옵시디언에서 특정한 텍스트 타입 인식하게 하기 , SYNC 버튼 추가
     this.extensions.push(createSyncFromRemoteExtension(this, this.fileRepo));
