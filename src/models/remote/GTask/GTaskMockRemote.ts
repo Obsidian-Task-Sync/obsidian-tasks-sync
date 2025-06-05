@@ -97,6 +97,20 @@ export class GTaskMockRemote implements Remote {
 
     return Promise.resolve();
   }
+
+  create(title: string, tasklistId: string): Promise<Task> {
+    const item: GTaskItem = {
+      id: 'mocked-id',
+      tasklistId,
+      title,
+      status: 'needsAction',
+      updated: new Date().toISOString(),
+    };
+
+    this.mockedItemsMap.set(item.id, item);
+
+    return Promise.resolve(mapToTask(item));
+  }
 }
 
 function mapToTask(item: GTaskItem): Task {

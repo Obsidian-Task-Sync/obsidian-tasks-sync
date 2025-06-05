@@ -107,7 +107,7 @@ export default class GTaskSyncPlugin extends Plugin {
     // When registering intervals, this function will automatically clear the interval when the plugin is disabled.
     this.registerInterval(window.setInterval(() => console.log('setInterval'), 5 * 60 * 1000));
 
-    registerTurnIntoGoogleTaskCommand(this);
+    registerTurnIntoGoogleTaskCommand(this, this.remote);
 
     this.taskController.init();
     this.remote.init();
