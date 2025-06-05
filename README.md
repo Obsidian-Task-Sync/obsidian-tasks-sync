@@ -4,7 +4,7 @@
 
 - Google Tasks에서 변경된 Task 상태를 Obsidian 문서에 반영
 - Obsidian에서 Task를 수정하면 Google Tasks에도 자동 반영
-- 마크다운 문서 내 Task(`- [ ] [Task Title](gtask:task-id)`)를 Google Tasks와 양방향 동기화
+- 마크다운 문서 내 Task(`- [ ] [Task Title](gtask:taskId:tasklistId)`)를 Google Tasks와 양방향 동기화
 - 명령어(Command Palette)를 통한 Task 동기화/생성 지원
 - Google OAuth2 인증 지원
 
@@ -61,8 +61,8 @@
 ## 마크다운 Task 포맷
 
 ```markdown
-- [ ] [Task 제목](gtask:task-list-id:task-id)
-- [x] [완료된 Task](gtask:task-list-id:task-id)
+- [ ] [Task 제목](gtask:taskId:taskListId)
+- [x] [완료된 Task](gtask:taskId:taskListId)
 ```
 
 - `[ ]` : 미완료, `[x]` : 완료

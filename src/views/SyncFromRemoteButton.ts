@@ -1,8 +1,11 @@
 import { Extension, RangeSetBuilder, StateField } from '@codemirror/state';
 import { Decoration, EditorView, WidgetType } from '@codemirror/view';
-import { MarkdownView, Notice } from 'obsidian';
-import { createGTaskLine, getGTaskLineMeta, GTaskLineMeta } from 'src/libs/regexp';
+import { assert } from 'es-toolkit';
+import { MarkdownView, Notice, Workspace } from 'obsidian';
+import { getGTaskLineMeta, GTaskLineMeta } from 'src/libs/regexp';
 import GTaskSyncPlugin from 'src/main';
+import { Remote } from 'src/models/remote/Remote';
+import { FileRepository } from 'src/repositories/FileRepository';
 
 // 위젯 캐시를 위한 클래스
 class WidgetCache {
@@ -30,13 +33,21 @@ class SyncFromRemoteWidget extends WidgetType {
   constructor(
     private meta: GTaskLineMeta,
     private index: number,
-    private plugin: GTaskSyncPlugin,
+    private workspace: Workspace,
+    private fileRepo: FileRepository,
+    private remote: Remote,
   ) {
     super();
     this.widgetId = `sync-widget-${SyncFromRemoteWidget.widgetIdCounter++}`;
   }
 
-  static create(meta: GTaskLineMeta, index: number, plugin: GTaskSyncPlugin): SyncFromRemoteWidget {
+  static create(
+    meta: GTaskLineMeta,
+    index: number,
+    workspace: Workspace,
+    fileRepo: FileRepository,
+    remote: Remote,
+  ): SyncFromRemoteWidget {
     const cacheKey = `${meta.id}-${meta.tasklistId}-${index}`;
     const cached = this.widgetCache.get(cacheKey);
 
@@ -44,7 +55,7 @@ class SyncFromRemoteWidget extends WidgetType {
       return cached;
     }
 
-    const widget = new SyncFromRemoteWidget(meta, index, plugin);
+    const widget = new SyncFromRemoteWidget(meta, index, workspace, fileRepo, remote);
     this.widgetCache.set(cacheKey, widget);
     return widget;
   }
@@ -67,21 +78,23 @@ class SyncFromRemoteWidget extends WidgetType {
       e.stopPropagation();
       console.log('Button clicked directly!', this.meta.id);
 
-      const markdownView = this.plugin.app.workspace.getActiveViewOfType(MarkdownView);
-      if (markdownView == null) {
-        new Notice('Markdown 뷰를 찾을 수 없습니다');
-        return;
-      }
+      const markdownView = this.workspace.getActiveViewOfType(MarkdownView);
+      assert(markdownView != null, 'Markdown 뷰를 찾을 수 없습니다');
+      assert(markdownView.file != null, 'Markdown 파일을 찾을 수 없습니다');
 
       try {
-        const task = await this.plugin.remote.get(this.meta.id, this.meta.tasklistId);
-        const newLine = createGTaskLine({
-          ...task,
-          tasklistId: this.meta.tasklistId,
-        });
+        const file = this.fileRepo.get(markdownView.file.path);
+        assert(file != null, '파일을 찾을 수 없습니다');
 
-        markdownView.editor.setLine(this.index, newLine);
-        new Notice(`동기화됨`);
+        const task = file.getTask(this.meta.id, this.meta.tasklistId);
+        assert(task != null, '태스크를 찾을 수 없습니다');
+
+        this.remote.get(this.meta.id, this.meta.tasklistId).then((remoteTask) => {
+          task.setTitle(remoteTask.title);
+          task.setStatus(remoteTask.status);
+          markdownView.editor.setLine(this.index, task.toMarkdown());
+          new Notice(`동기화됨`);
+        });
       } catch (e) {
         new Notice(`오류: ${e.message}`);
       }
@@ -114,7 +127,11 @@ class SyncFromRemoteWidget extends WidgetType {
   }
 }
 
-export const createSyncFromRemoteExtension = (plugin: GTaskSyncPlugin): Extension => {
+export const createSyncFromRemoteExtension = (
+  plugin: GTaskSyncPlugin,
+  fileRepo: FileRepository,
+  remote: Remote,
+): Extension => {
   return [
     EditorView.theme(
       {
@@ -145,7 +162,7 @@ export const createSyncFromRemoteExtension = (plugin: GTaskSyncPlugin): Extensio
               pos + line.length,
               pos + line.length,
               Decoration.widget({
-                widget: SyncFromRemoteWidget.create(meta, index, plugin),
+                widget: SyncFromRemoteWidget.create(meta, index, plugin.app.workspace, fileRepo, remote),
                 side: 1,
               }),
             );

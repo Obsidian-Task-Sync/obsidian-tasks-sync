@@ -23,6 +23,10 @@ export class Task {
 
   toMarkdown(): string {
     const status = this.status === 'completed' ? 'x' : ' ';
-    return `- [${status}] [${this.title}](gtask:${this.id})`;
+    return `- [${status}] [${this.title}](gtask:${this.getIdentifier()})`;
+  }
+
+  getIdentifier(): string {
+    return `${this.id}:${this.tasklistId}`;
   }
 }

@@ -4,7 +4,7 @@ import { App, Editor, MarkdownView, Modal, Notice, Plugin, PluginManifest } from
 import { registerTurnIntoGoogleTaskCommand } from './commands/TurnIntoGoogleTaskCommand';
 import { TaskController } from './controllers/TaskController';
 import { GTaskRemote } from './models/remote/gtask/GTaskRemote';
-import { TaskRepository } from './repositories/TaskRepository';
+import { FileRepository } from './repositories/FileRepository';
 import { SettingTab } from './views/SettingTab';
 import { createSyncFromRemoteExtension } from './views/SyncFromRemoteButton';
 
@@ -27,30 +27,31 @@ const DEFAULT_SETTINGS: GTaskSyncPluginSettings = {
 };
 
 export default class GTaskSyncPlugin extends Plugin {
-  settings: GTaskSyncPluginSettings;
+  private remote: GTaskRemote;
+  private fileRepo: FileRepository;
+  private taskController: TaskController;
 
-  remote: GTaskRemote;
-  taskRepo: TaskRepository;
-  taskController: TaskController;
+  settings: GTaskSyncPluginSettings;
 
   extensions: Extension[] = [];
 
   constructor(app: App, manifest: PluginManifest) {
     super(app, manifest);
 
-    this.remote = new GTaskRemote(this);
-
-    this.taskRepo = new TaskRepository(app, this.remote);
-    this.taskController = new TaskController(app, this.taskRepo);
-
     (window as any).test = this;
   }
 
   async onload() {
+    //initialize
     await this.loadSettings();
+    this.remote = new GTaskRemote(this.app, this.settings);
+    this.fileRepo = new FileRepository(this.app, this.remote);
+    this.taskController = new TaskController(this.app, this.fileRepo);
+
+    await this.fileRepo.initialize();
 
     // 옵시디언에서 특정한 텍스트 타입 인식하게 하기 , SYNC 버튼 추가
-    this.extensions.push(createSyncFromRemoteExtension(this));
+    this.extensions.push(createSyncFromRemoteExtension(this, this.fileRepo, this.remote));
 
     const ribbonIconEl = this.addRibbonIcon('dice', 'Sample Plugin', (evt: MouseEvent) => {
       // Called when the user clicks the icon.
@@ -101,7 +102,7 @@ export default class GTaskSyncPlugin extends Plugin {
     });
 
     // This adds a settings tab so the user can configure various aspects of the plugin
-    this.addSettingTab(new SettingTab(this.app, this));
+    this.addSettingTab(new SettingTab(this.app, this, this.remote));
 
     // When registering intervals, this function will automatically clear the interval when the plugin is disabled.
     this.registerInterval(window.setInterval(() => console.log('setInterval'), 5 * 60 * 1000));
