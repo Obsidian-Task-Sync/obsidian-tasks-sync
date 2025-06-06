@@ -1,5 +1,7 @@
 export class Notice {
+  message: string;
+
   constructor(message: string) {
-    console.log(`Notice: ${message}`);
+    this.message = message;
   }
 }
