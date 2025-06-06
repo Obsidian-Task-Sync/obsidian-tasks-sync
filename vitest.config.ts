@@ -9,6 +9,14 @@ const __dirname = dirname(__filename);
 export default defineConfig({
   test: {
     environment: 'node',
+    coverage: {
+      provider: 'istanbul',
+      reporter: ['text', 'html', 'lcov'],
+      reportsDirectory: './coverage',
+      all: true,
+      include: ['src/**/*.ts'],
+      exclude: ['**/*.test.ts', 'src/views/**'],
+    },
   },
   resolve: {
     alias: {
