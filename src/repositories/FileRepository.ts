@@ -4,11 +4,10 @@ import { Remote } from 'src/models/remote/Remote';
 import { Task } from 'src/models/Task';
 
 export class FileRepository {
-  private files: Map<string, File> = new Map();
-
   constructor(
     private app: App,
     private remote: Remote,
+    private files: Map<string, File> = new Map(),
   ) {}
 
   get(path: string): File | undefined {

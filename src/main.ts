@@ -3,7 +3,7 @@ import { merge } from 'es-toolkit';
 import { App, Editor, MarkdownView, Modal, Notice, Plugin, PluginManifest } from 'obsidian';
 import { registerTurnIntoGoogleTaskCommand } from './commands/TurnIntoGoogleTaskCommand';
 import { TaskController } from './controllers/TaskController';
-import { GTaskRemote } from './models/remote/gtask/GTaskRemote';
+import { GTaskRemote } from './models/remote/GTask/GTaskRemote';
 import { FileRepository } from './repositories/FileRepository';
 import { SettingTab } from './views/SettingTab';
 import { createSyncFromRemoteExtension } from './views/SyncFromRemoteButton';
