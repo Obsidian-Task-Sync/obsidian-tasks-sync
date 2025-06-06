@@ -5,3 +5,7 @@ export class Notice {
     this.message = message;
   }
 }
+
+export const Platform = {
+  isDesktop: true,
+};
