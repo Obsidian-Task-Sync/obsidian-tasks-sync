@@ -86,7 +86,7 @@ describe('GTaskAuthorization', () => {
     (global as any).window = { open: vi.fn() };
 
     let serverCallback: any;
-    http.createServer.mockImplementation((cb: any) => {
+    (http.createServer as any).mockImplementation((cb: any) => {
       serverCallback = cb;
       return {
         listen: function (port: number, cb2: () => void) {
@@ -112,7 +112,7 @@ describe('GTaskAuthorization', () => {
   it('loginGoogle rejects if code is missing', async () => {
     (global as any).window = { open: vi.fn() };
     let serverCallback: any;
-    http.createServer.mockImplementation((cb: any) => {
+    (http.createServer as any).mockImplementation((cb: any) => {
       serverCallback = cb;
       return {
         listen: function (port: number, cb2: () => void) {
