@@ -12,7 +12,7 @@ describe('TaskController', () => {
   let mockScan: any;
   it('should not call scan if file is null on file-open event', async () => {
     let fileOpenCallback: any;
-    app.workspace.on.mockImplementation((event, cb) => {
+    app.workspace.on.mockImplementation((event: string, cb: Function) => {
       fileOpenCallback = cb;
       return 'fileOpenEventRef';
     });
@@ -55,7 +55,7 @@ describe('TaskController', () => {
 
   it('should call scan on fileRepo when file-open event fires', async () => {
     let fileOpenCallback: any;
-    app.workspace.on.mockImplementation((event, cb) => {
+    app.workspace.on.mockImplementation((event: string, cb: Function) => {
       fileOpenCallback = cb;
       return 'fileOpenEventRef';
     });
@@ -72,7 +72,7 @@ describe('TaskController', () => {
   it('should call scan on fileRepo when modify event fires', async () => {
     let modifyCallback: any;
     app.workspace.on.mockReturnValue('fileOpenEventRef');
-    app.vault.on.mockImplementation((event, cb) => {
+    app.vault.on.mockImplementation((event: string, cb: Function) => {
       modifyCallback = cb;
       return 'fileSaveEventRef';
     });
