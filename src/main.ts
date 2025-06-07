@@ -2,7 +2,6 @@ import { Extension } from '@codemirror/state';
 import { merge } from 'es-toolkit';
 import { App, Notice, Plugin, PluginManifest } from 'obsidian';
 import { registerTurnIntoGoogleTaskCommand } from './commands/TurnIntoGoogleTaskCommand';
-import { TaskController } from './controllers/TaskController';
 import { GTaskRemote } from './models/remote/gtask/GTaskRemote';
 import { FileRepository } from './repositories/FileRepository';
 import { SettingTab } from './views/SettingTab';
@@ -23,7 +22,6 @@ const DEFAULT_SETTINGS: GTaskSyncPluginSettings = {
 export default class GTaskSyncPlugin extends Plugin {
   private remote: GTaskRemote;
   private fileRepo: FileRepository;
-  private taskController: TaskController;
   private statusBar: HTMLElement;
   private authCheckInterval: number | null = null;
   private isAuthorized = false;
@@ -43,24 +41,19 @@ export default class GTaskSyncPlugin extends Plugin {
     await this.loadSettings();
     this.remote = new GTaskRemote(this.app, this.settings);
     this.fileRepo = new FileRepository(this.app, this.remote);
-    this.taskController = new TaskController(this.app, this.fileRepo);
 
-    await this.fileRepo.initialize();
+    registerTurnIntoGoogleTaskCommand(this, this.remote);
 
     // 옵시디언에서 특정한 텍스트 타입 인식하게 하기 , SYNC 버튼 추가
     this.extensions.push(createSyncFromRemoteExtension(this, this.fileRepo, this.remote));
-
-    registerTurnIntoGoogleTaskCommand(this, this.remote);
 
     // This adds a status bar item to the bottom of the app. Does not work on mobile apps.
     this.statusBar = this.addStatusBarItem();
     this.statusBar.setText('초기화 중...');
 
-    /**
-     * [중요] Remote 초기화가 된 이후에 SettingTab이 초기화되어야 합니다.
-     */
-    this.taskController.init();
+    // [중요] Remote 초기화가 된 이후에 SettingTab이 초기화되어야 합니다.
     await this.remote.init();
+    await this.fileRepo.init();
 
     this.setIsAuthorized(await this.remote.checkIsAuthorized());
 
@@ -78,6 +71,8 @@ export default class GTaskSyncPlugin extends Plugin {
 
       if (this.isAuthorized) {
         new Notice('Google Tasks와 연동됨');
+
+        this.fileRepo.init();
         this.disposeAuthCheckInterval();
 
         // 연동 상태 확인 중단 후에 설정 탭 표시
@@ -125,8 +120,8 @@ export default class GTaskSyncPlugin extends Plugin {
   }
 
   onunload() {
-    this.taskController.dispose();
     this.remote.dispose();
+    this.fileRepo.dispose();
     this.disposeAuthCheckInterval();
   }
 }

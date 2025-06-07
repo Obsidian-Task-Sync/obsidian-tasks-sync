@@ -1,3 +1,4 @@
+import { debounce } from 'es-toolkit';
 import { App, TFile } from 'obsidian';
 import { getGTaskLineMeta } from 'src/libs/regexp';
 import { Remote } from 'src/models/remote/Remote';
@@ -6,33 +7,37 @@ import { Task } from 'src/models/Task';
 export class FileRepository {
   private files: Map<string, File> = new Map();
 
+  private abortController = new AbortController();
+
   constructor(
     private app: App,
     private remote: Remote,
-  ) {}
-
-  get(path: string): File | undefined {
-    const file = this.files.get(path);
-
-    if (file == null) {
-      const tFile = this.app.vault.getFileByPath(path);
-      if (tFile == null) {
-        return undefined;
+  ) {
+    const fileOpenEvent = this.app.workspace.on('file-open', async (file) => {
+      if (file != null) {
+        console.log('file-open', file.path);
+        await this.get(file.path)?.initialize();
       }
+    });
 
-      const file = new File(this.app, this.remote, tFile);
-      this.files.set(path, file);
-    }
+    const fileSaveEvent = this.app.vault.on(
+      'modify',
+      debounce((file) => this.get(file.path)?.scan(), 300, { signal: this.abortController.signal }),
+    );
 
-    return file;
+    this.abortController.signal.addEventListener('abort', () => {
+      this.app.workspace.offref(fileOpenEvent);
+      this.app.workspace.offref(fileSaveEvent);
+    });
   }
 
-  async initialize(): Promise<void> {
+  async init() {
     const markdownFiles = this.app.vault.getMarkdownFiles();
     const batchSize = 20;
 
     for (let i = 0; i < markdownFiles.length; i += batchSize) {
       const batch = markdownFiles.slice(i, i + batchSize);
+
       await Promise.all(
         batch.map(async (tFile) => {
           const file = new File(this.app, this.remote, tFile);
@@ -45,6 +50,27 @@ export class FileRepository {
       );
       await new Promise((resolve) => setTimeout(resolve, 10));
     }
+  }
+
+  dispose(): void {
+    this.abortController.abort();
+  }
+
+  get(path: string): File | undefined {
+    let file = this.files.get(path);
+
+    if (file == null) {
+      const tFile = this.app.vault.getFileByPath(path);
+
+      if (tFile == null) {
+        return undefined;
+      }
+
+      file = new File(this.app, this.remote, tFile);
+      this.files.set(path, file);
+    }
+
+    return file;
   }
 }
 

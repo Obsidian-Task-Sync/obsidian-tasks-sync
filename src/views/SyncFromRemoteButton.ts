@@ -153,6 +153,10 @@ export const createSyncFromRemoteExtension = (
         const builder = new RangeSetBuilder<Decoration>();
         const lines = tr.state.doc.toString().split('\n');
 
+        if (!plugin.getIsAuthorized()) {
+          return builder.finish();
+        }
+
         let pos = 0;
         for (const [index, line] of lines.entries()) {
           const meta = getGTaskLineMeta(line);
