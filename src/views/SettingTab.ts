@@ -9,6 +9,8 @@ export class SettingTab extends PluginSettingTab {
   private isLoading = true;
   private isAuthorized = false;
 
+  private authCheckInterval: number | null = null;
+
   constructor(app: App, plugin: GTaskSyncPlugin, remote: Remote) {
     super(app, plugin);
     this.plugin = plugin;
@@ -65,15 +67,33 @@ export class SettingTab extends PluginSettingTab {
           this.hide();
           this.display();
           await this.remote.authorize();
+
+          this.authCheckInterval = window.setInterval(async () => {
+            this.isAuthorized = await this.remote.checkIsAuthorized();
+            this.display();
+            if (this.isAuthorized && this.authCheckInterval != null) {
+              clearInterval(this.authCheckInterval);
+              this.authCheckInterval = null;
+            }
+          }, 1000);
         });
       });
     } else {
       new Setting(containerEl).setName('Google Tasks 연동').addButton((button) => {
         button.setButtonText('연동 취소').onClick(async () => {
           await this.remote.unauthorize();
+          this.isAuthorized = false;
           this.display();
         });
       });
+    }
+  }
+
+  override hide(): void {
+    super.hide();
+    if (this.authCheckInterval != null) {
+      clearInterval(this.authCheckInterval);
+      this.authCheckInterval = null;
     }
   }
 
