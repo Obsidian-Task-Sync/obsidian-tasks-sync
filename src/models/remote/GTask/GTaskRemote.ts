@@ -21,6 +21,8 @@ export class GTaskRemote implements Remote {
     }
 
     this._auth = new GTaskAuthorization(this.app, this.settings.googleClientId, this.settings.googleClientSecret);
+    await this._auth.init();
+
     this._client = google.tasks({
       version: 'v1',
       auth: this._auth.getAuthClient(),
@@ -33,6 +35,14 @@ export class GTaskRemote implements Remote {
 
   async authorize() {
     await this._auth?.authorize();
+  }
+
+  async unauthorize() {
+    await this._auth?.unauthorize();
+  }
+
+  async checkIsAuthorized() {
+    return (await this._auth?.checkIsAuthorized()) ?? false;
   }
 
   async assure() {
