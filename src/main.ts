@@ -1,6 +1,6 @@
 import { Extension } from '@codemirror/state';
 import { merge } from 'es-toolkit';
-import { App, Plugin, PluginManifest } from 'obsidian';
+import { App, Notice, Plugin, PluginManifest } from 'obsidian';
 import { registerTurnIntoGoogleTaskCommand } from './commands/TurnIntoGoogleTaskCommand';
 import { TaskController } from './controllers/TaskController';
 import { GTaskRemote } from './models/remote/gtask/GTaskRemote';
@@ -25,9 +25,11 @@ export default class GTaskSyncPlugin extends Plugin {
   private fileRepo: FileRepository;
   private taskController: TaskController;
   private statusBar: HTMLElement;
+  private authCheckInterval: number | null = null;
+  private isAuthorized = false;
+  private settingTab: SettingTab | null = null;
 
   settings: GTaskSyncPluginSettings;
-
   extensions: Extension[] = [];
 
   constructor(app: App, manifest: PluginManifest) {
@@ -60,22 +62,40 @@ export default class GTaskSyncPlugin extends Plugin {
     this.taskController.init();
     await this.remote.init();
 
-    const settingTab = new SettingTab(this.app, this, this.remote);
-    await settingTab.init();
-    this.addSettingTab(settingTab);
+    this.setIsAuthorized(await this.remote.checkIsAuthorized());
 
-    if (await this.remote.checkIsAuthorized()) {
-      this.statusBar.setText('Google Tasks와 연동됨');
-    } else {
-      this.statusBar.setText('Google Tasks와 연동되지 않음');
-    }
+    this.settingTab = new SettingTab(this.app, this, this.remote);
+    await this.settingTab.init();
+    this.addSettingTab(this.settingTab);
 
     this.extensions.forEach((extension) => this.registerEditorExtension(extension));
   }
 
-  onunload() {
-    this.taskController.dispose();
-    this.remote.dispose();
+  activateAuthCheckInterval() {
+    // 1.5초마다 연동 상태 확인
+    this.authCheckInterval = window.setInterval(async () => {
+      this.setIsAuthorized(await this.remote.checkIsAuthorized());
+
+      if (this.isAuthorized) {
+        new Notice('Google Tasks와 연동됨');
+        this.disposeAuthCheckInterval();
+
+        // 연동 상태 확인 중단 후에 설정 탭 표시
+        if (this.settingTab != null) {
+          this.settingTab.display();
+        }
+      }
+    }, 1500);
+
+    // 30초 후에 연동 상태 확인 중단
+    window.setTimeout(this.disposeAuthCheckInterval.bind(this), 30_000);
+  }
+
+  disposeAuthCheckInterval() {
+    if (this.authCheckInterval != null) {
+      window.clearInterval(this.authCheckInterval);
+      this.authCheckInterval = null;
+    }
   }
 
   async loadSettings() {
@@ -85,5 +105,28 @@ export default class GTaskSyncPlugin extends Plugin {
   async updateSettings(settings: Partial<GTaskSyncPluginSettings>) {
     this.settings = merge(this.settings, settings);
     await this.saveData(this.settings);
+  }
+
+  getIsAuthorized() {
+    return this.isAuthorized;
+  }
+
+  setIsAuthorized(isAuthorized: boolean) {
+    this.isAuthorized = isAuthorized;
+    this.onIsAuthorizedChanged(isAuthorized);
+  }
+
+  onIsAuthorizedChanged(isAuthorized: boolean) {
+    if (isAuthorized) {
+      this.statusBar.setText('Google Tasks와 연동됨');
+    } else {
+      this.statusBar.setText('Google Tasks와 연동되지 않음');
+    }
+  }
+
+  onunload() {
+    this.taskController.dispose();
+    this.remote.dispose();
+    this.disposeAuthCheckInterval();
   }
 }

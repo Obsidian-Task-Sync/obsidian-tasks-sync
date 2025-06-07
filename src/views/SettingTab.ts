@@ -6,11 +6,6 @@ export class SettingTab extends PluginSettingTab {
   private plugin: GTaskSyncPlugin;
   private remote: Remote;
 
-  private isLoading = true;
-  private isAuthorized = false;
-
-  private authCheckInterval: number | null = null;
-
   constructor(app: App, plugin: GTaskSyncPlugin, remote: Remote) {
     super(app, plugin);
     this.plugin = plugin;
@@ -18,9 +13,6 @@ export class SettingTab extends PluginSettingTab {
   }
 
   async init() {
-    this.isAuthorized = await this.remote.checkIsAuthorized();
-    this.isLoading = false;
-
     this.display();
   }
 
@@ -51,12 +43,7 @@ export class SettingTab extends PluginSettingTab {
         }),
       );
 
-    if (!this.isAuthorized) {
-      if (this.isLoading) {
-        containerEl.createEl('p', { text: '초기화 중...' });
-        return;
-      }
-
+    if (!this.plugin.getIsAuthorized()) {
       if (this.plugin.settings.googleClientId == null || this.plugin.settings.googleClientSecret == null) {
         containerEl.createEl('p', { text: 'Google Client Id와 Google Client Secret를 입력해주세요.' });
         return;
@@ -68,32 +55,17 @@ export class SettingTab extends PluginSettingTab {
           this.display();
           await this.remote.authorize();
 
-          this.authCheckInterval = window.setInterval(async () => {
-            this.isAuthorized = await this.remote.checkIsAuthorized();
-            this.display();
-            if (this.isAuthorized && this.authCheckInterval != null) {
-              clearInterval(this.authCheckInterval);
-              this.authCheckInterval = null;
-            }
-          }, 1000);
+          this.plugin.activateAuthCheckInterval();
         });
       });
     } else {
       new Setting(containerEl).setName('Google Tasks 연동').addButton((button) => {
         button.setButtonText('연동 취소').onClick(async () => {
           await this.remote.unauthorize();
-          this.isAuthorized = false;
+          this.plugin.setIsAuthorized(false);
           this.display();
         });
       });
-    }
-  }
-
-  override hide(): void {
-    super.hide();
-    if (this.authCheckInterval != null) {
-      clearInterval(this.authCheckInterval);
-      this.authCheckInterval = null;
     }
   }
 
