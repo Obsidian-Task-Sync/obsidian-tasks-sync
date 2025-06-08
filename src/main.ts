@@ -2,7 +2,7 @@ import { Extension } from '@codemirror/state';
 import { merge } from 'es-toolkit';
 import { App, Notice, Plugin, PluginManifest } from 'obsidian';
 import { registerTurnIntoGoogleTaskCommand } from './commands/TurnIntoGoogleTaskCommand';
-import { GTaskRemote } from './models/remote/gtask/GTaskRemote';
+import { GTaskRemote } from './models/remote/GTask/GTaskRemote';
 import { FileRepository } from './repositories/FileRepository';
 import { SettingTab } from './views/SettingTab';
 import { createSyncFromRemoteExtension } from './views/SyncFromRemoteButton';
