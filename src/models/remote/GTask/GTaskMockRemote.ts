@@ -111,6 +111,14 @@ export class GTaskMockRemote implements Remote {
 
     return Promise.resolve(mapToTask(item));
   }
+
+  async checkIsAuthorized(): Promise<boolean> {
+    return true;
+  }
+
+  async unauthorize(): Promise<void> {
+    console.log('Mock authorization revoked');
+  }
 }
 
 function mapToTask(item: GTaskItem): Task {

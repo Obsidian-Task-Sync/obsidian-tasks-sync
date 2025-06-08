@@ -32,12 +32,13 @@ export class GTaskAuthorization {
     clientSecret: string,
   ) {
     this.authClient = new OAuth2Client(clientId, clientSecret, GTaskAuthorization.REDIRECT_URI);
+  }
 
-    this.persistedCredentials.get().then((savedTokens) => {
-      if (savedTokens != null) {
-        this.authClient.setCredentials(savedTokens);
-      }
-    });
+  async init() {
+    const savedTokens = await this.persistedCredentials.get();
+    if (savedTokens != null) {
+      this.authClient.setCredentials(savedTokens);
+    }
   }
 
   dispose() {
@@ -67,6 +68,27 @@ export class GTaskAuthorization {
       return accessToken;
     } catch {
       return await this.loginGoogle();
+    }
+  }
+
+  async unauthorize() {
+    const accessToken = (await this.authClient.getAccessToken()).token;
+    if (accessToken == null) {
+      return;
+    }
+
+    await this.authClient.revokeToken(accessToken);
+    this.authClient.setCredentials({});
+    this.persistedCredentials.set({});
+    this.server?.close();
+  }
+
+  async checkIsAuthorized() {
+    try {
+      const accessToken = (await this.authClient.getAccessToken()).token;
+      return accessToken != null;
+    } catch {
+      return false;
     }
   }
 

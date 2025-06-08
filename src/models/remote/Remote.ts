@@ -5,4 +5,6 @@ export interface Remote {
   update(id: string, tasklistId: string, from: Task): Promise<void>;
   create(title: string, tasklistId: string): Promise<Task>;
   authorize(): Promise<void>;
+  unauthorize(): Promise<void>;
+  checkIsAuthorized(): Promise<boolean>;
 }
