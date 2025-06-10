@@ -1,6 +1,6 @@
 {
   "id": "tasks-sync",
-  "name": "Obsidian Tasks Sync",
+  "name": "Tasks Sync",
   "description": "Sync your tasks with any other task manager",
   "author": "이게대체MERGE",
   "version": "1.0.0",
