@@ -1,5 +1,5 @@
 import { Task } from '../../Task';
-import { Remote } from '../Remote';
+import { Remote, RemoteSettingPanel } from '../Remote';
 import { gTaskIdentifierSchema, stringifyGTaskIdentifier } from './GTaskRemote';
 
 export interface GTaskItem {
@@ -71,6 +71,11 @@ export class GTaskMockRemote implements Remote {
       ],
     ]);
   }
+  id: string;
+  settingTab: RemoteSettingPanel<object>;
+  init(): Promise<void> {
+    throw new Error('Method not implemented.');
+  }
 
   async authorize(): Promise<void> {
     console.log('Mock authorization successful');
@@ -126,7 +131,7 @@ export class GTaskMockRemote implements Remote {
 
 function mapToTask(item: GTaskItem, identifier?: string): Task {
   const taskIdentifier = identifier ?? stringifyGTaskIdentifier({ tasklistId: item.tasklistId, taskId: item.id });
-  return new Task(item.title, 'gtask', taskIdentifier, item.status === 'completed');
+  return new Task(item.title, this, taskIdentifier, item.status === 'completed');
 }
 
 const defaultItem: GTaskItem = {

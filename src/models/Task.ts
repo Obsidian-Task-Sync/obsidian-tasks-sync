@@ -1,20 +1,21 @@
-import { createTaskMarkdown, TaskLineMeta, TaskPlatform } from 'src/libs/regexp';
+import { createTaskMarkdown, TaskLineMeta } from 'src/libs/regexp';
+import { Remote } from './remote/Remote';
 
 export class Task {
   title: string;
   completed: boolean;
   identifier: string;
-  platform: TaskPlatform;
+  remote: Remote;
 
-  constructor(title: string, platform: TaskPlatform, identifier: string, completed = false) {
+  constructor(title: string, remote: Remote, identifier: string, completed = false) {
     this.title = title;
-    this.platform = platform;
+    this.remote = remote;
     this.identifier = identifier;
     this.completed = completed;
   }
 
-  static fromLineMeta(meta: TaskLineMeta): Task {
-    return new Task(meta.title, meta.platform, meta.identifier, meta.completed);
+  static fromLineMeta(meta: TaskLineMeta, remote: Remote): Task {
+    return new Task(meta.title, remote, meta.identifier, meta.completed);
   }
 
   setTitle(title: string): void {

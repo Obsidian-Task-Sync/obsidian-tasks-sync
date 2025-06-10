@@ -1,11 +1,11 @@
 import { Editor, Notice } from 'obsidian';
-import { Remote } from 'src/models/remote/Remote';
-import GTaskSyncPlugin from '../main';
+import TaskSyncPlugin from '../../../main';
+import { GTaskRemote } from './GTaskRemote';
 
-export function registerTurnIntoGoogleTaskCommand(plugin: GTaskSyncPlugin, remote: Remote): void {
+export function registerTurnIntoGoogleTaskCommand(plugin: TaskSyncPlugin, remote: GTaskRemote): void {
   plugin.addCommand({
     id: 'turn-into-google-task',
-    name: '구글 태스크로 생성하기',
+    name: 'Turn into Google Task',
     editorCallback: async (editor: Editor) => {
       const selectedText = editor.getSelection().trim();
 

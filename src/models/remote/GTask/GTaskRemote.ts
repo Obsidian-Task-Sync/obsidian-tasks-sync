@@ -1,11 +1,13 @@
 import { assert } from 'es-toolkit';
 import { google, tasks_v1 } from 'googleapis';
 import { App, Notice } from 'obsidian';
-import { GTaskSyncPluginSettings } from 'src/main';
+import TaskSyncPlugin from 'src/main';
+import { registerTurnIntoGoogleTaskCommand } from 'src/models/remote/gtask/TurnIntoGoogleTaskCommand';
 import { z } from 'zod';
 import { Task } from '../../Task';
 import { Remote } from '../Remote';
 import { GTaskAuthorization } from './GTaskAuthorization';
+import { GTaskSettingsData, GTaskSettingTab } from './GTaskSettings';
 
 // tasklistId;taskId 형식의 문자열과 객체 간 양방향 변환을 위한 타입
 type GTaskIdentifier = {
@@ -32,13 +34,18 @@ const createGTaskArgs = z.object({
 });
 
 export class GTaskRemote implements Remote {
+  id = 'gtask';
   private _auth?: GTaskAuthorization;
   private _client?: tasks_v1.Tasks;
+  settingTab: GTaskSettingTab;
 
   constructor(
     private app: App,
-    private settings: GTaskSyncPluginSettings,
-  ) {}
+    private plugin: TaskSyncPlugin,
+    private settings: GTaskSettingsData,
+  ) {
+    this.settingTab = new GTaskSettingTab(plugin, settings, this);
+  }
 
   async init() {
     if (this.settings.googleClientId == null || this.settings.googleClientSecret == null) {
@@ -52,6 +59,8 @@ export class GTaskRemote implements Remote {
       version: 'v1',
       auth: this._auth.getAuthClient(),
     });
+
+    registerTurnIntoGoogleTaskCommand(this.plugin, this);
   }
 
   dispose() {
@@ -93,7 +102,7 @@ export class GTaskRemote implements Remote {
       assert(data.title != null, 'Task title is null');
       assert(data.status != null, 'Task status is null');
 
-      return new Task(data.title, 'gtask', id, data.status === 'completed');
+      return new Task(data.title, this, id, data.status === 'completed');
     } catch (error) {
       new Notice(`태스크를 가져오는데 실패했습니다: ${error.message}`);
       throw error;
@@ -139,7 +148,7 @@ export class GTaskRemote implements Remote {
     return data.items;
   }
 
-  async create(title: string, args: Record<string, string>) {
+  async create(title: string, args: Record<string, string>): Promise<Task> {
     const parsedArgs = createGTaskArgs.parse(args);
     const { tasklistId } = parsedArgs;
 
@@ -156,6 +165,6 @@ export class GTaskRemote implements Remote {
     assert(data.title != null, 'Task title is null');
 
     const identifier = stringifyGTaskIdentifier({ tasklistId, taskId: data.id });
-    return new Task(data.title, 'gtask', identifier, data.status === 'completed');
+    return new Task(data.title, this, identifier, data.status === 'completed');
   }
 }

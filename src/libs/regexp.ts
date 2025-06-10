@@ -56,5 +56,5 @@ function isValidPlatform(platform: string): platform is TaskPlatform {
 // 태스크 메타데이터로 마크다운 라인 생성
 export function createTaskMarkdown(task: Task): string {
   const checkbox = task.completed ? '- [x]' : '- [ ]';
-  return `${checkbox} ${task.title} <!-- task:${task.platform}:${task.identifier} -->`;
+  return `${checkbox} ${task.title} <!-- task:${task.remote.id}:${task.identifier} -->`;
 }
