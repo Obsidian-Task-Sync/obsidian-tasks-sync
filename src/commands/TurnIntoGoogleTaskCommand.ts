@@ -1,4 +1,4 @@
-import { Editor, MarkdownView, Notice } from 'obsidian';
+import { Editor, Notice } from 'obsidian';
 import { Remote } from 'src/models/remote/Remote';
 import GTaskSyncPlugin from '../main';
 
@@ -6,7 +6,7 @@ export function registerTurnIntoGoogleTaskCommand(plugin: GTaskSyncPlugin, remot
   plugin.addCommand({
     id: 'turn-into-google-task',
     name: '구글 태스크로 생성하기',
-    editorCallback: async (editor: Editor, view: MarkdownView) => {
+    editorCallback: async (editor: Editor) => {
       const selectedText = editor.getSelection().trim();
 
       if (!selectedText) {
@@ -15,7 +15,7 @@ export function registerTurnIntoGoogleTaskCommand(plugin: GTaskSyncPlugin, remot
       }
 
       try {
-        const task = await remote.create(selectedText, '@default');
+        const task = await remote.create(selectedText, { tasklistId: '@default' });
         editor.replaceSelection(task.toMarkdown());
         new Notice('Google Task로 생성되었습니다.');
       } catch (err) {

@@ -1,6 +1,6 @@
 import { debounce } from 'es-toolkit';
 import { App, TFile } from 'obsidian';
-import { getGTaskLineMeta } from 'src/libs/regexp';
+import { getTaskLineMeta } from 'src/libs/regexp';
 import { Remote } from 'src/models/remote/Remote';
 import { Task } from 'src/models/Task';
 
@@ -79,11 +79,8 @@ interface ScanFileResult {
   updated: Task[];
 }
 
-//taskId : tasklistId
-type TaskKey = `${string}:${string}`;
-
 export class File {
-  private tasks: Map<TaskKey, Task> = new Map();
+  private tasks: Map<string, Task> = new Map();
 
   constructor(
     private app: App,
@@ -96,19 +93,17 @@ export class File {
     const lines = content.split('\n');
 
     for (const line of lines) {
-      const meta = getGTaskLineMeta(line);
+      const meta = getTaskLineMeta(line);
 
       if (meta != null) {
-        const { status, title, tasklistId, id } = meta;
-        const task = new Task(id, tasklistId, title, status);
-
-        this.tasks.set(`${id}:${tasklistId}`, task);
+        const task = Task.fromLineMeta(meta);
+        this.tasks.set(task.identifier, task);
       }
     }
   }
 
-  getTask(id: string, tasklistId: string): Task | undefined {
-    return this.tasks.get(`${id}:${tasklistId}`);
+  getTask(id: string): Task | undefined {
+    return this.tasks.get(id);
   }
 
   async scan(): Promise<void> {
@@ -121,26 +116,24 @@ export class File {
     };
 
     for (const line of lines) {
-      const meta = getGTaskLineMeta(line);
+      const meta = getTaskLineMeta(line);
 
       if (meta != null) {
-        const { status, title, tasklistId, id } = meta;
-        const cached = this.tasks.get(`${id}:${tasklistId}`);
+        const { title, identifier } = meta;
+        const cached = this.tasks.get(identifier);
 
         if (cached != null) {
-          const isStatusUpdated = cached.status !== status;
           const isTitleUpdated = cached.title !== title;
 
-          if (isStatusUpdated || isTitleUpdated) {
-            cached.setStatus(status);
+          if (isTitleUpdated) {
             cached.setTitle(title);
 
             result.updated.push(cached);
           }
         } else {
-          const task = new Task(id, tasklistId, title, status);
+          const task = Task.fromLineMeta(meta);
 
-          this.tasks.set(`${id}:${tasklistId}`, task);
+          this.tasks.set(identifier, task);
           result.added.push(task);
         }
       }
@@ -148,12 +141,12 @@ export class File {
 
     // iterator 순회중에 중간에 삭제하는 것은 위험하므로, 추후 로직 수정 필요
     for (const task of this.tasks.values()) {
-      if (!lines.some((line) => line.includes(`gtask:${task.id}:${task.tasklistId}`))) {
-        this.tasks.delete(`${task.id}:${task.tasklistId}`);
+      if (!lines.some((line) => line.includes(`gtask:${task.identifier}`))) {
+        this.tasks.delete(task.identifier);
       }
     }
 
-    await Promise.all(result.updated.map((task) => this.remote.update(task.id, task.tasklistId, task)));
+    await Promise.all(result.updated.map((task) => this.remote.update(task.identifier, task)));
   }
 
   hasAnyTask(): boolean {

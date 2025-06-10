@@ -1,32 +1,35 @@
-export type TaskStatus = 'needsAction' | 'completed';
+import { createTaskMarkdown, TaskLineMeta, TaskPlatform } from 'src/libs/regexp';
 
 export class Task {
-  id: string;
-  tasklistId: string;
   title: string;
-  status: TaskStatus;
+  completed: boolean;
+  identifier: string;
+  platform: TaskPlatform;
 
-  constructor(id: string, tasklistId: string, title: string, status: TaskStatus) {
-    this.id = id;
-    this.tasklistId = tasklistId;
+  constructor(title: string, platform: TaskPlatform, identifier: string, completed = false) {
     this.title = title;
-    this.status = status;
+    this.platform = platform;
+    this.identifier = identifier;
+    this.completed = completed;
+  }
+
+  static fromLineMeta(meta: TaskLineMeta): Task {
+    return new Task(meta.title, meta.platform, meta.identifier, meta.completed);
   }
 
   setTitle(title: string): void {
     this.title = title;
   }
 
-  setStatus(status: TaskStatus): void {
-    this.status = status;
+  setCompleted(completed: boolean): void {
+    this.completed = completed;
   }
 
   toMarkdown(): string {
-    const status = this.status === 'completed' ? 'x' : ' ';
-    return `- [${status}] [${this.title}](gtask:${this.getIdentifier()})`;
+    return createTaskMarkdown(this);
   }
 
   getIdentifier(): string {
-    return `${this.id}:${this.tasklistId}`;
+    return this.identifier;
   }
 }

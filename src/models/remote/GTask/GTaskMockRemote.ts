@@ -1,5 +1,6 @@
 import { Task } from '../../Task';
 import { Remote } from '../Remote';
+import { gTaskIdentifierSchema, stringifyGTaskIdentifier } from './GTaskRemote';
 
 export interface GTaskItem {
   id: string;
@@ -75,30 +76,31 @@ export class GTaskMockRemote implements Remote {
     console.log('Mock authorization successful');
   }
 
-  get(id: string, tasklistId: string) {
-    const item = this.mockedItemsMap.get(id);
+  async get(id: string): Promise<Task> {
+    const { taskId } = gTaskIdentifierSchema.parse(id);
+    const item = this.mockedItemsMap.get(taskId);
 
     if (item == null) {
-      throw new Error(`Item with id ${id} not found`);
+      throw new Error(`Item with id ${taskId} not found`);
     }
 
-    return Promise.resolve(mapToTask(item));
+    return mapToTask(item);
   }
 
-  update(id: string, tasklistId: string, from: Task): Promise<void> {
-    const item = this.mockedItemsMap.get(from.id) ?? defaultItem;
+  async update(id: string, from: Task): Promise<void> {
+    const { taskId } = gTaskIdentifierSchema.parse(id);
+    const item = this.mockedItemsMap.get(taskId) ?? defaultItem;
 
-    this.mockedItemsMap.set(from.id, {
+    this.mockedItemsMap.set(taskId, {
       ...item,
-      id: from.id,
+      id: taskId,
       title: from.title,
-      status: from.status,
+      status: from.completed ? 'completed' : 'needsAction',
     });
-
-    return Promise.resolve();
   }
 
-  create(title: string, tasklistId: string): Promise<Task> {
+  async create(title: string, args: Record<string, string>): Promise<Task> {
+    const tasklistId = args.tasklistId;
     const item: GTaskItem = {
       id: 'mocked-id',
       tasklistId,
@@ -109,7 +111,8 @@ export class GTaskMockRemote implements Remote {
 
     this.mockedItemsMap.set(item.id, item);
 
-    return Promise.resolve(mapToTask(item));
+    const identifier = stringifyGTaskIdentifier({ tasklistId, taskId: item.id });
+    return mapToTask(item, identifier);
   }
 
   async checkIsAuthorized(): Promise<boolean> {
@@ -121,8 +124,9 @@ export class GTaskMockRemote implements Remote {
   }
 }
 
-function mapToTask(item: GTaskItem): Task {
-  return new Task(item.id, item.tasklistId, item.title, item.status);
+function mapToTask(item: GTaskItem, identifier?: string): Task {
+  const taskIdentifier = identifier ?? stringifyGTaskIdentifier({ tasklistId: item.tasklistId, taskId: item.id });
+  return new Task(item.title, 'gtask', taskIdentifier, item.status === 'completed');
 }
 
 const defaultItem: GTaskItem = {
