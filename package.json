@@ -42,6 +42,7 @@
   "dependencies": {
     "@codemirror/state": "^6.5.2",
     "@codemirror/view": "^6.37.1",
+    "@doist/todoist-api-typescript": "^5.0.0",
     "es-toolkit": "^1.38.0",
     "google-auth-library": "^9.15.1"
   }

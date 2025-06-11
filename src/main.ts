@@ -1,73 +1,79 @@
 import { Extension } from '@codemirror/state';
 import { merge } from 'es-toolkit';
 import { App, Notice, Plugin, PluginManifest } from 'obsidian';
-import { registerTurnIntoGoogleTaskCommand } from './commands/TurnIntoGoogleTaskCommand';
+import { TaskPlatform } from './libs/regexp';
 import { GTaskRemote } from './models/remote/GTask/GTaskRemote';
+import { GTaskSettingsData } from './models/remote/gtask/GTaskSettings';
+import { Remote } from './models/remote/Remote';
+import { TodoistRemote } from './models/remote/todoist/TodoistRemote';
+import { TodoistSettingsData } from './models/remote/todoist/TodoistSettingTab';
 import { FileRepository } from './repositories/FileRepository';
 import { SettingTab } from './views/SettingTab';
 import { createSyncFromRemoteExtension } from './views/SyncFromRemoteButton';
 
-export interface GTaskSyncPluginSettings {
-  mySetting: string;
-  googleClientId?: string;
-  googleClientSecret?: string;
-}
+export type PluginSettings = TodoistSettingsData & GTaskSettingsData;
 
-const DEFAULT_SETTINGS: GTaskSyncPluginSettings = {
-  mySetting: 'default',
-  googleClientId: '',
-  googleClientSecret: '',
+const DEFAULT_SETTINGS: PluginSettings = {
+  googleClientId: null,
+  googleClientSecret: null,
+  todoistApiToken: null,
 };
 
-export default class GTaskSyncPlugin extends Plugin {
-  private remote: GTaskRemote;
+export default class TaskSyncPlugin extends Plugin {
+  private remotes: Remote[];
+
   private fileRepo: FileRepository;
   private statusBar: HTMLElement;
   private authCheckInterval: number | null = null;
   private isAuthorized = false;
   private settingTab: SettingTab | null = null;
 
-  settings: GTaskSyncPluginSettings;
+  settings: PluginSettings;
   extensions: Extension[] = [];
 
   constructor(app: App, manifest: PluginManifest) {
     super(app, manifest);
-
-    (window as any).test = this;
   }
 
   async onload() {
     //initialize
     await this.loadSettings();
-    this.remote = new GTaskRemote(this.app, this.settings);
-    this.fileRepo = new FileRepository(this.app, this.remote);
 
-    registerTurnIntoGoogleTaskCommand(this, this.remote);
+    const gtaskRemote = new GTaskRemote(this.app, this, this.settings);
+    const todoistRemote = new TodoistRemote(this.app, this, this.settings);
+
+    gtaskRemote.init();
+    todoistRemote.init();
+
+    this.remotes = [gtaskRemote, todoistRemote];
+    this.fileRepo = new FileRepository(this.app, this);
 
     // 옵시디언에서 특정한 텍스트 타입 인식하게 하기 , SYNC 버튼 추가
-    this.extensions.push(createSyncFromRemoteExtension(this, this.fileRepo, this.remote));
+    this.extensions.push(createSyncFromRemoteExtension(this, this.fileRepo));
 
     // This adds a status bar item to the bottom of the app. Does not work on mobile apps.
     this.statusBar = this.addStatusBarItem();
     this.statusBar.setText('초기화 중...');
 
     // [중요] Remote 초기화가 된 이후에 SettingTab이 초기화되어야 합니다.
-    await this.remote.init();
+    for (const remote of this.remotes) {
+      await remote.init();
+    }
+
     await this.fileRepo.init();
 
-    this.setIsAuthorized(await this.remote.checkIsAuthorized());
+    this.setIsAuthorized(await this.remotes.every((remote) => remote.checkIsAuthorized()));
 
-    this.settingTab = new SettingTab(this.app, this, this.remote);
-    await this.settingTab.init();
+    this.settingTab = new SettingTab(this.app, this, this.remotes);
     this.addSettingTab(this.settingTab);
 
     this.extensions.forEach((extension) => this.registerEditorExtension(extension));
   }
 
-  activateAuthCheckInterval() {
+  activateAuthCheckInterval(remote: Remote) {
     // 1.5초마다 연동 상태 확인
     this.authCheckInterval = window.setInterval(async () => {
-      this.setIsAuthorized(await this.remote.checkIsAuthorized());
+      this.setIsAuthorized(await remote.checkIsAuthorized());
 
       if (this.isAuthorized) {
         new Notice('Google Tasks와 연동됨');
@@ -97,7 +103,7 @@ export default class GTaskSyncPlugin extends Plugin {
     this.settings = Object.assign({}, DEFAULT_SETTINGS, await this.loadData());
   }
 
-  async updateSettings(settings: Partial<GTaskSyncPluginSettings>) {
+  async updateSettings(settings: Partial<PluginSettings>) {
     this.settings = merge(this.settings, settings);
     await this.saveData(this.settings);
   }
@@ -119,8 +125,16 @@ export default class GTaskSyncPlugin extends Plugin {
     }
   }
 
+  getRemoteByPlatform(platform: TaskPlatform): Remote {
+    const remote = this.remotes.find((remote) => remote.id === platform);
+    if (remote == null) {
+      throw new Error(`Remote ${platform} not found`);
+    }
+    return remote;
+  }
+
   onunload() {
-    this.remote.dispose();
+    this.remotes.forEach((remote) => remote.dispose?.());
     this.fileRepo.dispose();
     this.disposeAuthCheckInterval();
   }

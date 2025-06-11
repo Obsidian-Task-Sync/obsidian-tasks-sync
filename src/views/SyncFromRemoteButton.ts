@@ -1,10 +1,9 @@
 import { Extension, RangeSetBuilder, StateField } from '@codemirror/state';
 import { Decoration, EditorView, WidgetType } from '@codemirror/view';
 import { assert } from 'es-toolkit';
-import { MarkdownView, Notice, Workspace } from 'obsidian';
-import { getGTaskLineMeta, GTaskLineMeta } from 'src/libs/regexp';
-import GTaskSyncPlugin from 'src/main';
-import { Remote } from 'src/models/remote/Remote';
+import { MarkdownView, Notice } from 'obsidian';
+import { getTaskLineMeta, TaskLineMeta } from 'src/libs/regexp';
+import TaskSyncPlugin from 'src/main';
 import { FileRepository } from 'src/repositories/FileRepository';
 
 // 위젯 캐시를 위한 클래스
@@ -31,31 +30,29 @@ class SyncFromRemoteWidget extends WidgetType {
   private button: HTMLButtonElement | null = null;
 
   constructor(
-    private meta: GTaskLineMeta,
+    private meta: TaskLineMeta,
     private index: number,
-    private workspace: Workspace,
+    private plugin: TaskSyncPlugin,
     private fileRepo: FileRepository,
-    private remote: Remote,
   ) {
     super();
     this.widgetId = `sync-widget-${SyncFromRemoteWidget.widgetIdCounter++}`;
   }
 
   static create(
-    meta: GTaskLineMeta,
+    meta: TaskLineMeta,
     index: number,
-    workspace: Workspace,
+    plugin: TaskSyncPlugin,
     fileRepo: FileRepository,
-    remote: Remote,
   ): SyncFromRemoteWidget {
-    const cacheKey = `${meta.id}-${meta.tasklistId}-${index}`;
+    const cacheKey = `${meta.identifier}-${index}`;
     const cached = this.widgetCache.get(cacheKey);
 
-    if (cached && cached.meta.id === meta.id && cached.meta.tasklistId === meta.tasklistId && cached.index === index) {
+    if (cached && cached.meta.identifier === meta.identifier && cached.index === index) {
       return cached;
     }
 
-    const widget = new SyncFromRemoteWidget(meta, index, workspace, fileRepo, remote);
+    const widget = new SyncFromRemoteWidget(meta, index, plugin, fileRepo);
     this.widgetCache.set(cacheKey, widget);
     return widget;
   }
@@ -69,16 +66,15 @@ class SyncFromRemoteWidget extends WidgetType {
     this.button.textContent = 'Sync from Remote';
     this.button.className = 'cm-sync-button';
     this.button.dataset.widgetId = this.widgetId;
-    this.button.dataset.taskId = this.meta.id;
-    this.button.dataset.tasklistId = this.meta.tasklistId;
+    this.button.dataset.taskId = this.meta.identifier;
     this.button.dataset.lineIndex = this.index.toString();
 
     this.button.addEventListener('click', async (e) => {
       e.preventDefault();
       e.stopPropagation();
-      console.log('Button clicked directly!', this.meta.id);
+      console.log('Button clicked directly!', this.meta.identifier);
 
-      const markdownView = this.workspace.getActiveViewOfType(MarkdownView);
+      const markdownView = this.plugin.app.workspace.getActiveViewOfType(MarkdownView);
       assert(markdownView != null, 'Markdown 뷰를 찾을 수 없습니다');
       assert(markdownView.file != null, 'Markdown 파일을 찾을 수 없습니다');
 
@@ -86,12 +82,12 @@ class SyncFromRemoteWidget extends WidgetType {
         const file = this.fileRepo.get(markdownView.file.path);
         assert(file != null, '파일을 찾을 수 없습니다');
 
-        const task = file.getTask(this.meta.id, this.meta.tasklistId);
+        const task = file.getTask(this.meta);
         assert(task != null, '태스크를 찾을 수 없습니다');
 
-        this.remote.get(this.meta.id, this.meta.tasklistId).then((remoteTask) => {
+        task.remote.get(task.identifier).then((remoteTask) => {
           task.setTitle(remoteTask.title);
-          task.setStatus(remoteTask.status);
+          task.setCompleted(remoteTask.completed);
           markdownView.editor.setLine(this.index, task.toMarkdown());
           new Notice(`동기화됨`);
         });
@@ -107,8 +103,7 @@ class SyncFromRemoteWidget extends WidgetType {
     if (!other) return false;
     return (
       this.widgetId === other.widgetId &&
-      this.meta.id === other.meta.id &&
-      this.meta.tasklistId === other.meta.tasklistId &&
+      this.meta.identifier === other.meta.identifier &&
       this.index === other.index &&
       this.button === other.button // DOM 요소도 비교
     );
@@ -127,11 +122,7 @@ class SyncFromRemoteWidget extends WidgetType {
   }
 }
 
-export const createSyncFromRemoteExtension = (
-  plugin: GTaskSyncPlugin,
-  fileRepo: FileRepository,
-  remote: Remote,
-): Extension => {
+export const createSyncFromRemoteExtension = (plugin: TaskSyncPlugin, fileRepo: FileRepository): Extension => {
   return [
     EditorView.theme(
       {
@@ -159,14 +150,14 @@ export const createSyncFromRemoteExtension = (
 
         let pos = 0;
         for (const [index, line] of lines.entries()) {
-          const meta = getGTaskLineMeta(line);
+          const meta = getTaskLineMeta(line);
 
           if (meta != null) {
             builder.add(
               pos + line.length,
               pos + line.length,
               Decoration.widget({
-                widget: SyncFromRemoteWidget.create(meta, index, plugin.app.workspace, fileRepo, remote),
+                widget: SyncFromRemoteWidget.create(meta, index, plugin, fileRepo),
                 side: 1,
               }),
             );

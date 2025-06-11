@@ -1,7 +1,7 @@
 import { debounce } from 'es-toolkit';
 import { App, TFile } from 'obsidian';
-import { getGTaskLineMeta } from 'src/libs/regexp';
-import { Remote } from 'src/models/remote/Remote';
+import { getTaskLineMeta, TaskLineMeta, TaskPlatform } from 'src/libs/regexp';
+import TaskSyncPlugin from 'src/main';
 import { Task } from 'src/models/Task';
 
 export class FileRepository {
@@ -11,7 +11,7 @@ export class FileRepository {
 
   constructor(
     private app: App,
-    private remote: Remote,
+    private plugin: TaskSyncPlugin,
   ) {
     const fileOpenEvent = this.app.workspace.on('file-open', async (file) => {
       if (file != null) {
@@ -40,7 +40,7 @@ export class FileRepository {
 
       await Promise.all(
         batch.map(async (tFile) => {
-          const file = new File(this.app, this.remote, tFile);
+          const file = new File(this.app, this.plugin, tFile);
           await file.initialize();
 
           if (file.hasAnyTask()) {
@@ -66,7 +66,7 @@ export class FileRepository {
         return undefined;
       }
 
-      file = new File(this.app, this.remote, tFile);
+      file = new File(this.app, this.plugin, tFile);
       this.files.set(path, file);
     }
 
@@ -79,15 +79,12 @@ interface ScanFileResult {
   updated: Task[];
 }
 
-//taskId : tasklistId
-type TaskKey = `${string}:${string}`;
-
 export class File {
-  private tasks: Map<TaskKey, Task> = new Map();
+  private tasks: Map<string, Task> = new Map();
 
   constructor(
     private app: App,
-    private remote: Remote,
+    private plugin: TaskSyncPlugin,
     private file: TFile,
   ) {}
 
@@ -96,19 +93,17 @@ export class File {
     const lines = content.split('\n');
 
     for (const line of lines) {
-      const meta = getGTaskLineMeta(line);
+      const meta = getTaskLineMeta(line);
 
       if (meta != null) {
-        const { status, title, tasklistId, id } = meta;
-        const task = new Task(id, tasklistId, title, status);
-
-        this.tasks.set(`${id}:${tasklistId}`, task);
+        const task = Task.fromLineMeta(meta, this.plugin.getRemoteByPlatform(meta.platform));
+        this.tasks.set(getTaskItemIdentifierFromMeta(meta), task);
       }
     }
   }
 
-  getTask(id: string, tasklistId: string): Task | undefined {
-    return this.tasks.get(`${id}:${tasklistId}`);
+  getTask(meta: TaskLineMeta): Task | undefined {
+    return this.tasks.get(getTaskItemIdentifierFromMeta(meta));
   }
 
   async scan(): Promise<void> {
@@ -121,26 +116,30 @@ export class File {
     };
 
     for (const line of lines) {
-      const meta = getGTaskLineMeta(line);
+      const meta = getTaskLineMeta(line);
 
       if (meta != null) {
-        const { status, title, tasklistId, id } = meta;
-        const cached = this.tasks.get(`${id}:${tasklistId}`);
+        const { title, completed } = meta;
+        const mapId = getTaskItemIdentifierFromMeta(meta);
+        const cached = this.tasks.get(mapId);
 
         if (cached != null) {
-          const isStatusUpdated = cached.status !== status;
           const isTitleUpdated = cached.title !== title;
+          const isCompletedUpdated = cached.completed !== completed;
 
-          if (isStatusUpdated || isTitleUpdated) {
-            cached.setStatus(status);
+          if (isTitleUpdated) {
             cached.setTitle(title);
+            result.updated.push(cached);
+          }
 
+          if (isCompletedUpdated) {
+            cached.setCompleted(completed);
             result.updated.push(cached);
           }
         } else {
-          const task = new Task(id, tasklistId, title, status);
+          const task = Task.fromLineMeta(meta, this.plugin.getRemoteByPlatform(meta.platform));
 
-          this.tasks.set(`${id}:${tasklistId}`, task);
+          this.tasks.set(mapId, task);
           result.added.push(task);
         }
       }
@@ -148,15 +147,26 @@ export class File {
 
     // iterator 순회중에 중간에 삭제하는 것은 위험하므로, 추후 로직 수정 필요
     for (const task of this.tasks.values()) {
-      if (!lines.some((line) => line.includes(`gtask:${task.id}:${task.tasklistId}`))) {
-        this.tasks.delete(`${task.id}:${task.tasklistId}`);
+      const mapId = getTaskItemIdentifierFromTask(task);
+      if (!lines.some((line) => line.includes(mapId))) {
+        this.tasks.delete(mapId);
       }
     }
 
-    await Promise.all(result.updated.map((task) => this.remote.update(task.id, task.tasklistId, task)));
+    await Promise.all(result.updated.map((task) => task.remote.update(task.identifier, task)));
   }
 
   hasAnyTask(): boolean {
     return this.tasks.size > 0;
   }
+}
+
+type TaskItemIdentifier = `task:${TaskPlatform}:${string}`;
+
+function getTaskItemIdentifierFromMeta(meta: TaskLineMeta): TaskItemIdentifier {
+  return `task:${meta.platform}:${meta.identifier}` as const;
+}
+
+function getTaskItemIdentifierFromTask(task: Task): TaskItemIdentifier {
+  return `task:${task.remote.id as TaskPlatform}:${task.identifier}` as const;
 }
