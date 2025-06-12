@@ -9,12 +9,13 @@ export interface TaskLineMeta {
   platform: TaskPlatform;
   identifier: string;
   completed: boolean;
+  dueDate?: string; // yyyy-MM-dd format
 }
 
-// 태스크 메타데이터 파싱을 위한 정규식
-// 형식: - [ ] title <!-- task:platform:identifier -->
-// 또는: title <!-- task:platform:identifier -->
-export const TASK_REGEXP = /^(?:-\s+\[([ x])\]\s+)?(.+?)(?:\s*<!--\s*task:([^:\s]+):([^:\s]+)\s*-->)?$/;
+// 태스크 메타데이터 파싱을 위한 정규식 수정
+// 형식: - [ ] title [due:: yyyy-MM-dd] <!-- task:platform:identifier -->
+export const TASK_REGEXP =
+  /^(?:-\s+\[([ x])\]\s+)?(.+?)(?:\s*\[due::([^\]]+)\])?(?:\s*<!--\s*task:([^:\s]+):([^:\s]+)\s*-->)?$/;
 
 // 지원하는 플랫폼 목록
 const SUPPORTED_PLATFORMS = new Set<TaskPlatform>(['gtask', 'todoist']);
@@ -24,7 +25,7 @@ export function getTaskLineMeta(line: string): TaskLineMeta | null {
   const match = line.match(TASK_REGEXP);
   if (!match) return null;
 
-  const [_, checkbox, title, platform, identifier] = match;
+  const [_, checkbox, title, dueDate, platform, identifier] = match;
 
   // 메타데이터가 없는 경우 (일반 텍스트)
   if (!platform || !identifier) {
@@ -45,6 +46,7 @@ export function getTaskLineMeta(line: string): TaskLineMeta | null {
     platform: platform as TaskPlatform,
     identifier: identifier.trim(),
     completed,
+    dueDate: dueDate ? dueDate.trim() : undefined,
   };
 }
 
@@ -56,5 +58,6 @@ function isValidPlatform(platform: string): platform is TaskPlatform {
 // 태스크 메타데이터로 마크다운 라인 생성
 export function createTaskMarkdown(task: Task): string {
   const checkbox = task.completed ? '- [x]' : '- [ ]';
-  return `${checkbox} ${task.title} <!-- task:${task.remote.id}:${task.identifier} -->`;
+  const dueDate = task.dueDate ? ` [due::${task.dueDate}]` : '';
+  return `${checkbox} ${task.title} ${dueDate} <!-- task:${task.remote.id}:${task.identifier} -->`;
 }
