@@ -11,6 +11,10 @@ import { registerTurnIntoTodoistCommand } from './TurnIntoTodoistCommand';
 // Todoist identifier는 단순히 taskId만 사용
 export const todoistIdentifierSchema = z.string();
 
+const createTodoistArgs = z.object({
+  due: z.string().optional(),
+});
+
 export class TodoistRemote implements Remote {
   id = 'todoist';
 
@@ -95,18 +99,30 @@ export class TodoistRemote implements Remote {
     }
   }
 
-  async create(title: string): Promise<Task> {
+  async create(title: string, args: Record<string, string>): Promise<Task> {
     try {
       const client = await this.assure();
 
-      const task = await client.addTask({
+      const parsedArgs = createTodoistArgs.parse(args);
+      const { due } = parsedArgs;
+
+      const requestBody: {
+        content: string;
+        dueString?: string;
+      } = {
         content: title,
-      });
+      };
+
+      if (due) {
+        requestBody.dueString = due;
+      }
+
+      const task = await client.addTask(requestBody);
 
       assert(task.id, 'Task ID is null');
       assert(task.content, 'Task content is null');
 
-      return new Task(task.content, this, task.id, task.completedAt != null);
+      return new Task(task.content, this, task.id, task.completedAt != null, due);
     } catch (error) {
       new Notice(`태스크 생성에 실패했습니다: ${error.message}`);
       throw error;
