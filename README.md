@@ -14,14 +14,14 @@ A plugin that helps you synchronize your Obsidian tasks with various task manage
 
 Currently supported platforms:
 
-- [Google Tasks](docs/platform/Gtask.md)
+- [Google Tasks](docs/platform/GTask.md)
 - [Todoist](docs/platform/Todoist.md)
 
 Coming soon:
 
 - Microsoft To Do
 - Want to add your favorite platform?
-  [Create an issue!](https://github.com/yourusername/obsidian-tasks-sync/issues/new)
+  - [Create an issue!](https://github.com/hong-sile/obsidian-tasks-sync/issues)
 
 ## 🚀 Getting Started
 
@@ -38,12 +38,12 @@ We welcome contributions! Whether you want to:
 - Fix bugs or improve existing features
 - Enhance documentation
 
-Check out our [Contributing Guide](docs/contributing.md) and [Platform Integration Guide](docs/PLATFORM_INTEGRATION.md) to get started.
+Check out our [Contributing Guide](docs/contributing.md) to get started.
 
 ## 📝 Task Format
 
 ```markdown
-- [ ] [Task Title](platform:taskId:additional-info)
+- [ ] Task Title <!--platform:taskId:additional-info-->
 ```
 
 See platform-specific documentation for detailed format information.
@@ -54,3 +54,4 @@ See platform-specific documentation for detailed format information.
 - [Contributing Guidelines](docs/contributing.md)
 - Supported Platforms:
   - [Google Tasks](docs/platform/gtask.md)
+  - [Todoist](docs/platform/todoist.md)
