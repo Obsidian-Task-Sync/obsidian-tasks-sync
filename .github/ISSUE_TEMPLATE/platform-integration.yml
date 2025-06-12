@@ -1,0 +1,80 @@
+name: Platform Integration Request
+description: Request integration with a new task platform
+title: '[Platform] Integration Request: '
+labels: ['enhancement', 'platform-integration']
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Thanks for suggesting a new platform integration!
+
+  - type: input
+    id: platform-name
+    attributes:
+      label: Platform Name
+      description: Name of the task management platform
+      placeholder: 'e.g., Todoist'
+    validations:
+      required: true
+
+  - type: dropdown
+    id: auth-method
+    attributes:
+      label: Authentication Method
+      description: How does the platform handle authentication?
+      options:
+        - OAuth2
+        - API Key
+        - Basic Auth
+        - Other
+    validations:
+      required: true
+
+  - type: textarea
+    id: auth-flow
+    attributes:
+      label: Authentication Flow Summary
+      description: Brief description of the authentication process
+      placeholder: 'e.g., OAuth2 with redirect URL, API key in headers...'
+    validations:
+      required: true
+
+  - type: checkboxes
+    id: required-features
+    attributes:
+      label: Core Features Support
+      description: Please confirm if the platform supports these required features
+      options:
+        - label: Create Task (Required)
+          required: true
+        - label: Get Task Details
+          required: false
+        - label: Update Task Status (Required)
+          required: true
+        - label: Delete Task
+          required: false
+        - label: Due Date Support
+          required: false
+
+  - type: textarea
+    id: api-docs
+    attributes:
+      label: API Documentation
+      description: Links to relevant API documentation
+      placeholder: |
+        - API Overview: https://...
+        - Authentication Docs: https://...
+        - Task API Reference: https://...
+    validations:
+      required: true
+
+  - type: textarea
+    id: additional-context
+    attributes:
+      label: Additional Context
+      description: Any other relevant information about the platform
+      placeholder: |
+        - Rate limits
+        - API versions
+        - Special requirements
+        - Known limitations
