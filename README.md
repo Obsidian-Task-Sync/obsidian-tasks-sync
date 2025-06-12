@@ -50,7 +50,6 @@ See platform-specific documentation for detailed format information.
 
 ## 📚 Documentation
 
-- [Platform Integration Guide](docs/PLATFORM_INTEGRATION.md)
 - [Contributing Guidelines](docs/contributing.md)
 - Supported Platforms:
   - [Google Tasks](docs/platform/gtask.md)
