@@ -52,5 +52,5 @@ See platform-specific documentation for detailed format information.
 
 - [Contributing Guidelines](docs/contributing.md)
 - Supported Platforms:
-  - [Google Tasks](docs/platform/gtask.md)
+  - [Google Tasks](docs/platform/GTask.md)
   - [Todoist](docs/platform/todoist.md)
