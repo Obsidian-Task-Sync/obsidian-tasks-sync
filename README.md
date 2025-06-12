@@ -15,7 +15,7 @@ A plugin that helps you synchronize your Obsidian tasks with various task manage
 Currently supported platforms:
 
 - [Google Tasks](docs/platform/GTask.md)
-- [Todoist](docs/platform/Todoist.md)
+- [Todoist](docs/platform/todoist.md)
 
 Coming soon:
 
