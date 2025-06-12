@@ -28,6 +28,10 @@ export class Task {
     this.completed = completed;
   }
 
+  setDueDate(dueDate: string): void {
+    this.dueDate = dueDate;
+  }
+
   toMarkdown(): string {
     return createTaskMarkdown(this);
   }

@@ -124,7 +124,7 @@ export class GTaskRemote implements Remote {
           id: taskId,
           title: from.title,
           status: from.completed ? 'completed' : 'needsAction',
-          due: from.dueDate,
+          due: from.dueDate ? `${from.dueDate}T00:00:00Z` : undefined,
         },
       });
       new Notice('태스크가 업데이트되었습니다');
