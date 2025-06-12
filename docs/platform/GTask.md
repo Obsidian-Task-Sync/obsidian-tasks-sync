@@ -23,7 +23,7 @@ This guide explains how to set up and use Google Tasks synchronization with Obsi
    - `http://127.0.0.1:42813`
 3. Add redirect URI:
    - `http://127.0.0.1:42813/callback`
-   ![OAuth Client Setup](../images/create-oauth-client.png)
+     ![OAuth Client Setup](../images/create-oauth-client.png)
 
 ### 3. Register Test Users
 
@@ -49,9 +49,10 @@ This guide explains how to set up and use Google Tasks synchronization with Obsi
 3. Run "Turn into Google Task"
 
 ### Task Format
+
 ```markdown
-- [ ] [Task Title](gtask:taskId:tasklistId)
-- [x] [Completed Task](gtask:taskId:tasklistId)
+- [ ] Task Title <!--gtask:taskId:tasklistId-->
+- [x] Completed Task <!--gtask:taskId:tasklistId-->
 ```
 
 ### Synchronization
@@ -63,6 +64,7 @@ This guide explains how to set up and use Google Tasks synchronization with Obsi
 ## 🔍 Troubleshooting
 
 If you encounter authentication issues:
+
 1. Verify your Client ID and Secret
 2. Ensure you're using a registered test account
 3. Check if Google Tasks API is enabled
