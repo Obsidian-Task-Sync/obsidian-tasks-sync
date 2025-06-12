@@ -22,7 +22,7 @@ export class FileRepository {
 
     const fileSaveEvent = this.app.vault.on(
       'modify',
-      debounce((file) => this.get(file.path)?.scan(), 5, { signal: this.abortController.signal }),
+      debounce((file) => this.get(file.path)?.scan(), 10, { signal: this.abortController.signal }),
     );
 
     this.abortController.signal.addEventListener('abort', () => {
