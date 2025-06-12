@@ -1,6 +1,7 @@
 import { Editor, Notice } from 'obsidian';
 import TaskSyncPlugin from '../../../main';
 import { GTaskRemote } from './GTaskRemote';
+import { getTaskInitialMeta, getTaskLineMeta } from 'src/libs/regexp';
 
 export function registerTurnIntoGoogleTaskCommand(plugin: TaskSyncPlugin, remote: GTaskRemote): void {
   plugin.addCommand({
@@ -15,7 +16,15 @@ export function registerTurnIntoGoogleTaskCommand(plugin: TaskSyncPlugin, remote
       }
 
       try {
-        const task = await remote.create(selectedText, { tasklistId: '@default' });
+        const meta = getTaskInitialMeta(selectedText);
+        if (meta == null) {
+          throw new Error('선택한 텍스트가 유효한 Task가 아닙니다.');
+        }
+
+        const task = await remote.create(meta.title, {
+          tasklistId: '@default',
+          ...(meta.dueDate ? { due: meta.dueDate } : {}),
+        });
         editor.replaceSelection(task.toMarkdown());
         new Notice('Google Task로 생성되었습니다.');
       } catch (err) {
