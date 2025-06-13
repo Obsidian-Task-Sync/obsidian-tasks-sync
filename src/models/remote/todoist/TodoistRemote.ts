@@ -11,10 +11,6 @@ import { registerTurnIntoTodoistCommand } from './TurnIntoTodoistCommand';
 // Todoist identifier는 단순히 taskId만 사용
 export const todoistIdentifierSchema = z.string();
 
-const createTodoistArgs = z.object({
-  due: z.string().optional(),
-});
-
 export class TodoistRemote implements Remote {
   id = 'todoist';
 
@@ -114,12 +110,9 @@ export class TodoistRemote implements Remote {
     }
   }
 
-  async create(title: string, args: Record<string, string>): Promise<Task> {
+  async create(title: string, due?: string): Promise<Task> {
     try {
       const client = await this.assure();
-
-      const parsedArgs = createTodoistArgs.parse(args);
-      const { due } = parsedArgs;
 
       const requestBody: {
         content: string;

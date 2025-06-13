@@ -24,9 +24,7 @@ export function registerTurnIntoTodoistCommand(plugin: TaskSyncPlugin, remote: T
           throw new Error('선택한 텍스트가 유효한 Task가 아닙니다.');
         }
 
-        const task = await remote.create(meta.title, {
-          ...(meta.dueDate ? { due: meta.dueDate } : {}),
-        });
+        const task = await remote.create(meta.title, meta.dueDate);
         editor.replaceRange(task.toMarkdown(), from, to);
         new Notice('Todoist Task로 생성되었습니다.');
       } catch (err) {

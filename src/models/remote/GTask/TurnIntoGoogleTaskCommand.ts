@@ -24,9 +24,8 @@ export function registerTurnIntoGoogleTaskCommand(plugin: TaskSyncPlugin, remote
           throw new Error('선택한 텍스트가 유효한 Task가 아닙니다.');
         }
 
-        const task = await remote.create(meta.title, {
+        const task = await remote.create(meta.title, meta.dueDate, {
           tasklistId: '@default',
-          ...(meta.dueDate ? { due: meta.dueDate } : {}),
         });
         editor.replaceRange(task.toMarkdown(), from, to);
         new Notice('Google Task로 생성되었습니다.');

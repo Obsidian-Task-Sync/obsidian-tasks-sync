@@ -31,7 +31,6 @@ export function stringifyGTaskIdentifier(identifier: GTaskIdentifier): string {
 
 const createGTaskArgs = z.object({
   tasklistId: z.string(),
-  due: z.string().optional(),
 });
 
 export class GTaskRemote implements Remote {
@@ -152,9 +151,9 @@ export class GTaskRemote implements Remote {
     return data.items;
   }
 
-  async create(title: string, args: Record<string, string>): Promise<Task> {
+  async create(title: string, due?: string, args: Record<string, string> = {}): Promise<Task> {
     const parsedArgs = createGTaskArgs.parse(args);
-    const { tasklistId, due } = parsedArgs;
+    const { tasklistId } = parsedArgs;
 
     const client = await this.assure();
 

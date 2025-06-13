@@ -7,7 +7,7 @@ export interface Remote {
   settingTab: RemoteSettingPanel;
   get(id: string): Promise<Task>;
   update(id: string, from: Task): Promise<void>;
-  create(title: string, args?: Record<string, string>): Promise<Task>;
+  create(title: string, due?: string, args?: Record<string, string>): Promise<Task>;
   authorize(): Promise<void>;
   unauthorize(): Promise<void>;
   checkIsAuthorized(): Promise<boolean>;
