@@ -20,13 +20,13 @@ export class SettingTab extends PluginSettingTab {
 
     containerEl.createEl('h4', { text: 'Obsidian Tasks Sync Settings' });
     containerEl.createEl('h2', {}, (h2) => {
-      h2.appendText('Please refer to the ');
+      h2.appendText('Please refer to the  ');
       h2.createEl('a', {
         text: 'GitHub repository',
         href: 'https://github.com/hong-sile/obsidian-tasks-sync',
-        cls: 'external-link',
+        cls: 'external-link external-link-button',
       });
-      h2.appendText(' for usage and contribution guidelines.');
+      h2.appendText('  for usage and contribution guidelines.');
     });
 
     const tabContainer = containerEl.createDiv({ cls: 'setting-tab-container' });
