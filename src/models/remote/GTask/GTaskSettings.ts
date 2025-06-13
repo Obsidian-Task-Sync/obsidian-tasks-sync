@@ -14,9 +14,10 @@ export class GTaskSettingTab extends RemoteSettingPanel<GTaskSettingsData> {
   }
 
   display(): void {
-    const { containerEl } = this;
+    const container = this.getContainer();
+    container.empty();
 
-    new Setting(containerEl)
+    new Setting(container)
       .setName('Google Client Id')
       .setDesc('Google의 클라이언트 아이디')
       .addText((text) =>
@@ -26,7 +27,7 @@ export class GTaskSettingTab extends RemoteSettingPanel<GTaskSettingsData> {
         }),
       );
 
-    new Setting(containerEl)
+    new Setting(container)
       .setName('Client Secret')
       .setDesc('Google의 클라이언트 시크릿 키')
       .addText((text) =>
@@ -38,11 +39,11 @@ export class GTaskSettingTab extends RemoteSettingPanel<GTaskSettingsData> {
 
     if (!this.plugin.getIsAuthorized()) {
       if (this.data.googleClientId == null || this.data.googleClientSecret == null) {
-        containerEl.createEl('p', { text: 'Google Client Id와 Google Client Secret를 입력해주세요.' });
+        container.createEl('p', { text: 'Google Client Id와 Google Client Secret를 입력해주세요.' });
         return;
       }
 
-      new Setting(containerEl).setName('Google Tasks 연동').addButton((button) => {
+      new Setting(container).setName('Google Tasks 연동').addButton((button) => {
         button.setButtonText('Google Tasks 연동').onClick(async () => {
           this.rerender();
           await this.remote.authorize();
@@ -51,7 +52,7 @@ export class GTaskSettingTab extends RemoteSettingPanel<GTaskSettingsData> {
         });
       });
     } else {
-      new Setting(containerEl).setName('Google Tasks 연동').addButton((button) => {
+      new Setting(container).setName('Google Tasks 연동').addButton((button) => {
         button.setButtonText('연동 취소').onClick(async () => {
           await this.remote.unauthorize();
           this.plugin.setIsAuthorized(false);

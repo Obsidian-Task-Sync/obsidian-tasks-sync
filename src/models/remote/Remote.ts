@@ -21,6 +21,7 @@ export abstract class RemoteSettingPanel<TData extends object = object> {
   protected remote: Remote;
   protected data: TData;
   protected settingTab: SettingTab;
+  private container: HTMLElement | null = null;
 
   get containerEl(): HTMLElement {
     return this.settingTab.containerEl;
@@ -45,5 +46,14 @@ export abstract class RemoteSettingPanel<TData extends object = object> {
 
   rerender() {
     this.settingTab.display();
+  }
+
+  setContainer(container: HTMLElement) {
+    this.container = container;
+  }
+
+  protected getContainer(): HTMLElement {
+    if (!this.container) throw new Error('Container not set');
+    return this.container;
   }
 }

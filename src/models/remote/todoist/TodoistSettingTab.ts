@@ -13,7 +13,10 @@ export class TodoistSettingTab extends RemoteSettingPanel<TodoistSettingsData> {
   }
 
   display(): void {
-    new Setting(this.containerEl)
+    const container = this.getContainer();
+    container.empty();
+
+    new Setting(container)
       .setName('Todoist API Token')
       .setDesc('Todoist의 API 토큰')
       .addText((text) =>

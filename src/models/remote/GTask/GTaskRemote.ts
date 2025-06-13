@@ -2,7 +2,7 @@ import { assert } from 'es-toolkit';
 import { google, tasks_v1 } from 'googleapis';
 import { App, Notice } from 'obsidian';
 import TaskSyncPlugin from 'src/main';
-import { registerTurnIntoGoogleTaskCommand } from 'src/models/remote/gtask/TurnIntoGoogleTaskCommand';
+import { registerTurnIntoGoogleTaskCommand } from 'src/models/remote/GTask/TurnIntoGoogleTaskCommand';
 import { z } from 'zod';
 import { Task } from '../../Task';
 import { Remote } from '../Remote';

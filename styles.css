@@ -17,3 +17,31 @@ If your plugin does not need CSS, delete this file.
   border-radius: 4px;
   cursor: pointer;
 }
+
+.setting-tab-content {
+  margin-top: 1.5em;
+}
+
+.tab-button {
+  padding: 6px 12px;
+  background-color: #2a2a2a; /* 기본 비활성 배경 */
+  color: #aaa;
+  border: none;
+  border-top-left-radius: 6px;
+  border-top-right-radius: 6px;
+  cursor: pointer;
+  transition:
+    background-color 0.2s ease,
+    color 0.2s ease;
+}
+
+.tab-button:hover {
+  background-color: #3a3a3a; /* hover 시 약간 밝아짐 */
+  color: #ddd;
+}
+
+.tab-button.active {
+  background-color: #1e1e1e; /* ✅ active 시 더 어두운 배경 */
+  color: #fff;
+  font-weight: 600;
+}
