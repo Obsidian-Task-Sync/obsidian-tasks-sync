@@ -18,7 +18,7 @@ export class TodoistSettingTab extends RemoteSettingPanel<TodoistSettingsData> {
 
     new Setting(container)
       .setName('Todoist API Token')
-      .setDesc('Todoist의 API 토큰')
+      .setDesc('Please enter your Todoist API Token.')
       .addText((text) =>
         text.setValue(this.data.todoistApiToken ?? '').onChange((value) => {
           this.update({ todoistApiToken: value.trim() });

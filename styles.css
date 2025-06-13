@@ -24,7 +24,7 @@ If your plugin does not need CSS, delete this file.
 
 .tab-button {
   padding: 6px 12px;
-  background-color: #2a2a2a; /* 기본 비활성 배경 */
+  background-color: #2a2a2a;
   color: #aaa;
   border: none;
   border-top-left-radius: 6px;
@@ -36,12 +36,12 @@ If your plugin does not need CSS, delete this file.
 }
 
 .tab-button:hover {
-  background-color: #3a3a3a; /* hover 시 약간 밝아짐 */
+  background-color: #3a3a3a;
   color: #ddd;
 }
 
 .tab-button.active {
-  background-color: #1e1e1e; /* ✅ active 시 더 어두운 배경 */
+  background-color: #1e1e1e;
   color: #fff;
   font-weight: 600;
 }
