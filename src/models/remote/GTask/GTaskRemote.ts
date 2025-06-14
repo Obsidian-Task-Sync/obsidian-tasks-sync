@@ -89,10 +89,6 @@ export class GTaskRemote implements Remote {
 
   async get(id: string): Promise<Task> {
     try {
-      if (!this.settings.syncEnabled) {
-        new Notice('연동이 꺼져 있어 태스크를 가져올 수 없습니다.');
-        throw new Error('Google Task sync is disabled.');
-      }
       const { tasklistId, taskId } = gTaskIdentifierSchema.parse(id);
 
       const client = await this.assure();
@@ -114,10 +110,6 @@ export class GTaskRemote implements Remote {
   }
 
   async update(id: string, from: Task): Promise<void> {
-    if (!this.settings.syncEnabled) {
-      new Notice('연동이 꺼져 있어 태스크를 업데이트할 수 없습니다.');
-      throw new Error('Google Task sync is disabled.');
-    }
     try {
       const { tasklistId, taskId } = gTaskIdentifierSchema.parse(id);
 
@@ -139,10 +131,6 @@ export class GTaskRemote implements Remote {
   }
 
   async getTasklists() {
-    if (!this.settings.syncEnabled) {
-      new Notice('연동이 꺼져 있어 태스크를 업데이트할 수 없습니다.');
-      throw new Error('Google Task sync is disabled.');
-    }
     const client = await this.assure();
     const { data, status } = await client.tasklists.list();
     assert(status === 200, 'Failed to get tasklists');
@@ -151,10 +139,6 @@ export class GTaskRemote implements Remote {
   }
 
   async getTasks(tasklistId: string) {
-    if (!this.settings.syncEnabled) {
-      new Notice('연동이 꺼져 있어 태스크를 업데이트할 수 없습니다.');
-      throw new Error('Google Task sync is disabled.');
-    }
     const client = await this.assure();
     const { data, status } = await client.tasks.list({
       tasklist: tasklistId,
@@ -165,10 +149,6 @@ export class GTaskRemote implements Remote {
   }
 
   async create(title: string, args: Record<string, string>): Promise<Task> {
-    if (!this.settings.syncEnabled) {
-      new Notice('연동이 꺼져 있어 Google Task를 생성할 수 없습니다.');
-      throw new Error('Google Task sync is disabled.');
-    }
     const parsedArgs = createGTaskArgs.parse(args);
     const { tasklistId } = parsedArgs;
 
