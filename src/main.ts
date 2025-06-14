@@ -3,7 +3,7 @@ import { merge } from 'es-toolkit';
 import { App, Notice, Plugin, PluginManifest } from 'obsidian';
 import { TaskPlatform } from './libs/regexp';
 import { GTaskRemote } from './models/remote/GTask/GTaskRemote';
-import { GTaskSettingsData } from './models/remote/gtask/GTaskSettings';
+import { GTaskSettingsData } from './models/remote/GTask/GTaskSettings';
 import { Remote } from './models/remote/Remote';
 import { TodoistRemote } from './models/remote/todoist/TodoistRemote';
 import { TodoistSettingsData } from './models/remote/todoist/TodoistSettingTab';

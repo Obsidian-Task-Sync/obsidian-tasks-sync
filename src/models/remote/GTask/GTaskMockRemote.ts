@@ -104,7 +104,7 @@ export class GTaskMockRemote implements Remote {
     });
   }
 
-  async create(title: string, args: Record<string, string>): Promise<Task> {
+  async create(title: string, due: string = '2025-10-14', args: Record<string, string>): Promise<Task> {
     const tasklistId = args.tasklistId;
     const item: GTaskItem = {
       id: 'mocked-id',

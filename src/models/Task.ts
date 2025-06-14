@@ -6,16 +6,18 @@ export class Task {
   completed: boolean;
   identifier: string;
   remote: Remote;
+  dueDate?: string; //yyyy-MM-dd format
 
-  constructor(title: string, remote: Remote, identifier: string, completed = false) {
+  constructor(title: string, remote: Remote, identifier: string, completed = false, dueDate?: string) {
     this.title = title;
     this.remote = remote;
     this.identifier = identifier;
     this.completed = completed;
+    this.dueDate = dueDate;
   }
 
   static fromLineMeta(meta: TaskLineMeta, remote: Remote): Task {
-    return new Task(meta.title, remote, meta.identifier, meta.completed);
+    return new Task(meta.title, remote, meta.identifier, meta.completed, meta.dueDate);
   }
 
   setTitle(title: string): void {
@@ -24,6 +26,10 @@ export class Task {
 
   setCompleted(completed: boolean): void {
     this.completed = completed;
+  }
+
+  setDueDate(dueDate: string): void {
+    this.dueDate = dueDate;
   }
 
   toMarkdown(): string {

@@ -22,7 +22,7 @@ export class FileRepository {
 
     const fileSaveEvent = this.app.vault.on(
       'modify',
-      debounce((file) => this.get(file.path)?.scan(), 300, { signal: this.abortController.signal }),
+      debounce((file) => this.get(file.path)?.scan(), 10, { signal: this.abortController.signal }),
     );
 
     this.abortController.signal.addEventListener('abort', () => {
@@ -126,6 +126,7 @@ export class File {
         if (cached != null) {
           const isTitleUpdated = cached.title !== title;
           const isCompletedUpdated = cached.completed !== completed;
+          const isDueDateUpdated = cached.dueDate !== meta.dueDate;
 
           if (isTitleUpdated) {
             cached.setTitle(title);
@@ -134,6 +135,11 @@ export class File {
 
           if (isCompletedUpdated) {
             cached.setCompleted(completed);
+            result.updated.push(cached);
+          }
+
+          if (isDueDateUpdated && meta.dueDate !== undefined) {
+            cached.setDueDate(meta.dueDate);
             result.updated.push(cached);
           }
         } else {

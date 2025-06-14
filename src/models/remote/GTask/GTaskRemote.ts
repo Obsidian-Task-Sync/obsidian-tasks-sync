@@ -2,7 +2,7 @@ import { assert } from 'es-toolkit';
 import { google, tasks_v1 } from 'googleapis';
 import { App, Notice } from 'obsidian';
 import TaskSyncPlugin from 'src/main';
-import { registerTurnIntoGoogleTaskCommand } from 'src/models/remote/gtask/TurnIntoGoogleTaskCommand';
+import { registerTurnIntoGoogleTaskCommand } from 'src/models/remote/GTask/TurnIntoGoogleTaskCommand';
 import { z } from 'zod';
 import { Task } from '../../Task';
 import { Remote } from '../Remote';
@@ -102,7 +102,9 @@ export class GTaskRemote implements Remote {
       assert(data.title != null, 'Task title is null');
       assert(data.status != null, 'Task status is null');
 
-      return new Task(data.title, this, id, data.status === 'completed');
+      const dueDate = data.due ? data.due.split('T')[0] : undefined;
+
+      return new Task(data.title, this, id, data.status === 'completed', dueDate);
     } catch (error) {
       new Notice(`태스크를 가져오는데 실패했습니다: ${error.message}`);
       throw error;
@@ -121,6 +123,7 @@ export class GTaskRemote implements Remote {
           id: taskId,
           title: from.title,
           status: from.completed ? 'completed' : 'needsAction',
+          due: from.dueDate ? `${from.dueDate}T00:00:00Z` : undefined,
         },
       });
       new Notice('태스크가 업데이트되었습니다');
@@ -148,23 +151,30 @@ export class GTaskRemote implements Remote {
     return data.items;
   }
 
-  async create(title: string, args: Record<string, string>): Promise<Task> {
+  async create(title: string, due?: string, args: Record<string, string> = {}): Promise<Task> {
     const parsedArgs = createGTaskArgs.parse(args);
     const { tasklistId } = parsedArgs;
 
     const client = await this.assure();
 
+    const requestBody: tasks_v1.Schema$Task = {
+      title: title,
+    };
+
+    if (due) {
+      requestBody.due = due + 'T00:00:00Z'; // Google Tasks API expects ISO 8601 format
+    }
+
     const { data, status } = await client.tasks.insert({
       tasklist: tasklistId,
-      requestBody: {
-        title,
-      },
+      requestBody,
     });
+
     assert(status === 200, 'Failed to create task');
     assert(data.id != null, 'Task ID is null');
     assert(data.title != null, 'Task title is null');
 
     const identifier = stringifyGTaskIdentifier({ tasklistId, taskId: data.id });
-    return new Task(data.title, this, identifier, data.status === 'completed');
+    return new Task(data.title, this, identifier, data.status === 'completed', due);
   }
 }

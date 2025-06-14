@@ -66,7 +66,13 @@ export class TodoistRemote implements Remote {
       assert(todoistTask.id, 'Task ID is null');
       assert(todoistTask.content, 'Task content is null');
 
-      return new Task(todoistTask.content, this, todoistTask.id, todoistTask.completedAt != null);
+      return new Task(
+        todoistTask.content,
+        this,
+        todoistTask.id,
+        todoistTask.completedAt != null,
+        todoistTask.due?.date,
+      );
     } catch (error) {
       new Notice(`태스크를 가져오는데 실패했습니다: ${error.message}`);
       throw error;
@@ -78,9 +84,18 @@ export class TodoistRemote implements Remote {
       const taskId = todoistIdentifierSchema.parse(id);
       const client = await this.assure();
 
-      await client.updateTask(taskId, {
+      const requestBody: {
+        content: string;
+        dueString?: string;
+      } = {
         content: from.title,
-      });
+      };
+
+      if (from.dueDate) {
+        requestBody.dueString = from.dueDate;
+      }
+
+      await client.updateTask(taskId, requestBody);
 
       if (from.completed) {
         await client.closeTask(taskId);
@@ -95,18 +110,27 @@ export class TodoistRemote implements Remote {
     }
   }
 
-  async create(title: string): Promise<Task> {
+  async create(title: string, due?: string): Promise<Task> {
     try {
       const client = await this.assure();
 
-      const task = await client.addTask({
+      const requestBody: {
+        content: string;
+        dueString?: string;
+      } = {
         content: title,
-      });
+      };
+
+      if (due) {
+        requestBody.dueString = due;
+      }
+
+      const task = await client.addTask(requestBody);
 
       assert(task.id, 'Task ID is null');
       assert(task.content, 'Task content is null');
 
-      return new Task(task.content, this, task.id, task.completedAt != null);
+      return new Task(task.content, this, task.id, task.completedAt != null, due);
     } catch (error) {
       new Notice(`태스크 생성에 실패했습니다: ${error.message}`);
       throw error;
