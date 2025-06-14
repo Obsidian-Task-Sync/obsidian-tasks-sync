@@ -6,6 +6,9 @@ import { GTaskRemote } from './GTaskRemote';
 export interface GTaskSettingsData {
   googleClientId: string | null;
   googleClientSecret: string | null;
+
+  // ✅ 이 줄 추가
+  syncEnabled?: boolean;
 }
 
 export class GTaskSettingTab extends RemoteSettingPanel<GTaskSettingsData> {
@@ -60,5 +63,17 @@ export class GTaskSettingTab extends RemoteSettingPanel<GTaskSettingsData> {
         });
       });
     }
+    new Setting(container)
+      .setName('Sync ON/OFF')
+      .setDesc('Google Tasks와의 동기화 여부를 설정합니다.')
+      .addToggle((toggle) => {
+        toggle
+          .setValue(this.data.syncEnabled ?? true) // 기본값 true
+          .onChange(async (value) => {
+            this.data.syncEnabled = value;
+            await this.plugin.updateSettings({ syncEnabled: value }); // 보통 저장 함수가 있을 경우
+            this.rerender(); // 필요 시 리렌더
+          });
+      });
   }
 }
