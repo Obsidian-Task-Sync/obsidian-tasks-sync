@@ -15,7 +15,7 @@ A plugin that helps you synchronize your Obsidian tasks with various task manage
 Currently supported platforms:
 
 - [Google Tasks](docs/platform/GTask.md)
-- [Todoist](docs/platform/todoist.md)
+- [Todoist](docs/platform/Todoist.md)
 
 Coming soon:
 
@@ -30,9 +30,30 @@ Coming soon:
 3. Follow the platform-specific setup guide
 4. Start syncing your tasks!
 
+## How to use
+
+Creating Task
+
+- Write your task in Obsidian using the standard checkbox format
+- Use the command palette (Cmd/Ctrl + P) and select "Turn into Google Task" or "Turn into Todoist Task"
+- The task will be created on the selected platform and synced automatically
+
+Syncing Changes
+
+- From Obsidian to Remote:
+  - Check/uncheck the checkbox
+  - Edit the task content
+  - Changes are **automatically** synced to the remote platform
+- From Remote to Obsidian:
+  - Make changes in Google Tasks or Todoist
+  - Changes will be reflected in your Obsidian notes
+  - "Sync from Remote" button appears when remote changes are detected
+
+![example](docs/images/usages.png)
+
 ## 🤝 Contributing
 
-We welcome contributions! Whether you want to:
+welcome contributions! Whether you want to:
 
 - Add support for a new task platform
 - Fix bugs or improve existing features
