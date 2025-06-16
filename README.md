@@ -75,3 +75,66 @@ See platform-specific documentation for detailed format information.
 - Supported Platforms:
   - [Google Tasks](docs/platform/GTask.md)
   - [Todoist](docs/platform/todoist.md)
+
+## 📦 Using the Release in Your Obsidian Vault
+
+This guide explains how to download and install a published release of **Obsidian Tasks Sync** into your own Obsidian vault — no development or build setup required.
+
+---
+
+### 1. Download the Release
+
+1. Visit the [Releases Page](https://github.com/hong-sile/obsidian-tasks-sync/releases) of the repository.
+2. Download the latest `obsidian-tasks-sync.zip` file under **Assets**.
+
+---
+
+### 2. Install into Obsidian
+
+1. Open your Obsidian Vault.
+2. Locate the `.obsidian/plugins/` folder in your vault’s directory.
+3. Extract the contents of the zip file into a subfolder named `obsidian-tasks-sync`.
+
+```
+/YourVault/
+└── .obsidian/
+    └── plugins/
+        └── obsidian-tasks-sync/
+            ├── main.js
+            ├── manifest.json
+            └── styles.css
+```
+
+4. Restart Obsidian or go to **Settings → Community Plugins** and enable `Obsidian Tasks Sync`.
+
+---
+
+### 3. Authorize Your Task Platform
+
+If you're using Google Tasks or Todoist:
+
+* Go to **Settings → Obsidian Tasks Sync**
+* Input your Client ID and Client Secret
+* Click **Connect to \[Platform]** and follow the login flow
+
+> 🔒 *Each user must register their own credentials for Google or Todoist due to quota and security reasons.*
+
+---
+
+### 4. Start Using the Plugin
+
+Use the Command Palette (`Cmd+P` or `Ctrl+P`) to:
+
+* `Turn into Google Task`
+* `Sync from Remote`
+
+Tasks will be synced in both directions once authorized.
+
+---
+
+### Optional: Customize or Update
+
+* You can replace the plugin folder with a newer release anytime.
+* For developers, see the [Development Guide](https://github.com/hong-sile/obsidian-tasks-sync/wiki/Development) if you'd like to build from source.
+
+---
