@@ -140,53 +140,61 @@ export class File {
       updated: [],
     };
 
-    for (const line of lines) {
+    lines.forEach((line, lineNumber) => {
       const meta = getTaskLineMeta(line);
+      if (!meta) return;
 
-      if (meta != null) {
-        const { title, completed } = meta;
-        const mapId = getTaskItemIdentifierFromMeta(meta);
-        const cached = this.tasks.get(mapId);
+      const taskId = getTaskItemIdentifierFromMeta(meta);
+      const position: EditorPosition = {
+        line: lineNumber,
+        ch: line.indexOf(File.TASK_PREFIX),
+      };
 
-        if (cached != null) {
-          const task = cached.task;
+      const existing = this.tasks.get(taskId);
+      if (existing) {
+        // 항상 position은 업데이트
+        existing.position = position;
+        const task = existing.task;
 
-          const isTitleUpdated = task.title !== title;
-          const isCompletedUpdated = task.completed !== completed;
-          const isDueDateUpdated = task.dueDate !== meta.dueDate;
+        // task 내용이 변경된 경우만 result.updated에 추가
+        const isTitleUpdated = task.title !== meta.title;
+        const isCompletedUpdated = task.completed !== meta.completed;
+        const isDueDateUpdated = task.dueDate !== meta.dueDate;
 
+        if (isTitleUpdated || isCompletedUpdated || isDueDateUpdated) {
           if (isTitleUpdated) {
-            task.setTitle(title);
-            result.updated.push(task);
+            task.setTitle(meta.title);
           }
-
           if (isCompletedUpdated) {
-            task.setCompleted(completed);
-            result.updated.push(task);
+            task.setCompleted(meta.completed);
           }
-
           if (isDueDateUpdated && meta.dueDate !== undefined) {
             task.setDueDate(meta.dueDate);
-            result.updated.push(task);
           }
-        } else {
-          const task = Task.fromLineMeta(meta, this.plugin.getRemoteByPlatform(meta.platform));
-
-          this.tasks.set(mapId, task);
-          result.added.push(task);
+          result.updated.push(task);
         }
-      }
-    }
+      } else {
+        // 새로운 task 추가
+        const task = Task.fromLineMeta(meta, this.plugin.getRemoteByPlatform(meta.platform));
 
-    // iterator 순회중에 중간에 삭제하는 것은 위험하므로, 추후 로직 수정 필요
-    for (const task of this.tasks.values()) {
-      const mapId = getTaskItemIdentifierFromTask(task);
+        this.tasks.set(taskId, {
+          position,
+          task,
+        });
+        result.added.push(task);
+      }
+    });
+
+    for (const cached of this.tasks.values()) {
+      const mapId = getTaskItemIdentifierFromTask(cached.task);
       if (!lines.some((line) => line.includes(mapId))) {
         this.tasks.delete(mapId);
       }
     }
 
-    await Promise.all(result.updated.map((task) => task.remote.update(task.identifier, task)));
+    if (result.updated.length > 0) {
+      await Promise.all(result.updated.map((task) => task.remote.update(task.identifier, task)));
+    }
   }
 
   hasAnyTask(): boolean {
