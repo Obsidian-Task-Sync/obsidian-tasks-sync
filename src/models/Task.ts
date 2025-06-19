@@ -28,7 +28,7 @@ export class Task {
     this.completed = completed;
   }
 
-  setDueDate(dueDate: string): void {
+  setDueDate(dueDate: string | undefined): void {
     this.dueDate = dueDate;
   }
 
