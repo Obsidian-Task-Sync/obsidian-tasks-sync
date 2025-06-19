@@ -11,7 +11,7 @@ export interface Remote {
   authorize(): Promise<void>;
   unauthorize(): Promise<void>;
   checkIsAuthorized(): Promise<boolean>;
-  getAllTasks(): Task[];
+  getAllTasks(): Promise<Task[]>;
 
   init(): Promise<void>;
   dispose?(): void;

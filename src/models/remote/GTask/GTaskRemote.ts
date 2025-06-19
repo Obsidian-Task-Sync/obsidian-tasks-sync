@@ -34,6 +34,7 @@ const createGTaskArgs = z.object({
 });
 
 export class GTaskRemote implements Remote {
+  private static readonly DEFAULT_TASKLIST_ID = '@default'; // 기본 tasklist ID
   id = 'gtask';
   private _auth?: GTaskAuthorization;
   private _client?: tasks_v1.Tasks;
@@ -45,9 +46,6 @@ export class GTaskRemote implements Remote {
     private settings: GTaskSettingsData,
   ) {
     this.settingTab = new GTaskSettingTab(plugin, settings, this);
-  }
-  getAllTasks(): Task[] {
-    throw new Error('Method not implemented.');
   }
 
   async init() {
@@ -179,5 +177,29 @@ export class GTaskRemote implements Remote {
 
     const identifier = stringifyGTaskIdentifier({ tasklistId, taskId: data.id });
     return new Task(data.title, this, identifier, data.status === 'completed', due);
+  }
+
+  async getAllTasks(): Promise<Task[]> {
+    const gTasks = await this.getTasks(GTaskRemote.DEFAULT_TASKLIST_ID);
+
+    return gTasks.map((gTask) => {
+      // id 필수값 체크
+      if (!gTask.id || !gTask.title) {
+        throw new Error('Invalid task data: missing id or title');
+      }
+
+      const taskId = stringifyGTaskIdentifier({
+        tasklistId: GTaskRemote.DEFAULT_TASKLIST_ID,
+        taskId: gTask.id,
+      });
+
+      return new Task(
+        gTask.title,
+        this,
+        taskId,
+        gTask.status === 'completed',
+        gTask.due ? gTask.due.split('T')[0] : undefined,
+      );
+    });
   }
 }

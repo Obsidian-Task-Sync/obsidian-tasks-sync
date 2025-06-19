@@ -71,7 +71,7 @@ export class GTaskMockRemote implements Remote {
       ],
     ]);
   }
-  getAllTasks(): Task[] {
+  async getAllTasks(): Promise<Task[]> {
     throw new Error('Method not implemented.');
   }
   dispose?(): void {
