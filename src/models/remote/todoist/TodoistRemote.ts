@@ -24,6 +24,12 @@ export class TodoistRemote implements Remote {
   ) {
     this.settingTab = new TodoistSettingTab(plugin, settings, this);
   }
+  getAllTasks(): Task[] {
+    throw new Error('Method not implemented.');
+  }
+  dispose?(): void {
+    throw new Error('Method not implemented.');
+  }
 
   async init() {
     if (!this.settings.todoistApiToken) {

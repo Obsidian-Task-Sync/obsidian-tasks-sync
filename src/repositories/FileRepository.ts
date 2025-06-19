@@ -1,5 +1,5 @@
 import { debounce } from 'es-toolkit';
-import { App, TFile } from 'obsidian';
+import { App, EditorPosition, TFile } from 'obsidian';
 import { getTaskLineMeta, TaskLineMeta, TaskPlatform } from 'src/libs/regexp';
 import TaskSyncPlugin from 'src/main';
 import { Task } from 'src/models/Task';
@@ -72,6 +72,10 @@ export class FileRepository {
 
     return file;
   }
+
+  getAllFiles(): File[] {
+    return Array.from(this.files.values());
+  }
 }
 
 interface ScanFileResult {
@@ -79,8 +83,14 @@ interface ScanFileResult {
   updated: Task[];
 }
 
+interface TaskWithPosition {
+  task: Task;
+  position: EditorPosition;
+}
+
 export class File {
-  private tasks: Map<string, Task> = new Map();
+  private static readonly TASK_PREFIX = '- [';
+  private tasks: Map<string, TaskWithPosition> = new Map();
 
   constructor(
     private app: App,
@@ -89,21 +99,36 @@ export class File {
   ) {}
 
   async initialize(): Promise<void> {
-    const content = await this.app.vault.read(this.file);
-    const lines = content.split('\n');
+    try {
+      const content = await this.app.vault.read(this.file);
+      const lines = content.split('\n');
 
-    for (const line of lines) {
-      const meta = getTaskLineMeta(line);
+      lines.forEach((lineContent, lineNumber) => {
+        const meta = getTaskLineMeta(lineContent);
+        if (!meta) return;
 
-      if (meta != null) {
+        const taskId = getTaskItemIdentifierFromMeta(meta);
+        const position: EditorPosition = {
+          line: lineNumber,
+          ch: lineContent.indexOf(File.TASK_PREFIX),
+        };
+
+        // 새 태스크 생성 및 메모리에 저장
         const task = Task.fromLineMeta(meta, this.plugin.getRemoteByPlatform(meta.platform));
-        this.tasks.set(getTaskItemIdentifierFromMeta(meta), task);
-      }
+
+        this.tasks.set(taskId, {
+          position,
+          task,
+        });
+      });
+    } catch (error) {
+      console.error(`Failed to initialize file ${this.file.path}:`, error);
+      throw error;
     }
   }
 
   getTask(meta: TaskLineMeta): Task | undefined {
-    return this.tasks.get(getTaskItemIdentifierFromMeta(meta));
+    return this.tasks.get(getTaskItemIdentifierFromMeta(meta))?.task;
   }
 
   async scan(): Promise<void> {
@@ -124,23 +149,25 @@ export class File {
         const cached = this.tasks.get(mapId);
 
         if (cached != null) {
-          const isTitleUpdated = cached.title !== title;
-          const isCompletedUpdated = cached.completed !== completed;
-          const isDueDateUpdated = cached.dueDate !== meta.dueDate;
+          const task = cached.task;
+
+          const isTitleUpdated = task.title !== title;
+          const isCompletedUpdated = task.completed !== completed;
+          const isDueDateUpdated = task.dueDate !== meta.dueDate;
 
           if (isTitleUpdated) {
-            cached.setTitle(title);
-            result.updated.push(cached);
+            task.setTitle(title);
+            result.updated.push(task);
           }
 
           if (isCompletedUpdated) {
-            cached.setCompleted(completed);
-            result.updated.push(cached);
+            task.setCompleted(completed);
+            result.updated.push(task);
           }
 
           if (isDueDateUpdated && meta.dueDate !== undefined) {
-            cached.setDueDate(meta.dueDate);
-            result.updated.push(cached);
+            task.setDueDate(meta.dueDate);
+            result.updated.push(task);
           }
         } else {
           const task = Task.fromLineMeta(meta, this.plugin.getRemoteByPlatform(meta.platform));

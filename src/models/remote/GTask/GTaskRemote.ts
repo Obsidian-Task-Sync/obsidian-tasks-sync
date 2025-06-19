@@ -46,6 +46,9 @@ export class GTaskRemote implements Remote {
   ) {
     this.settingTab = new GTaskSettingTab(plugin, settings, this);
   }
+  getAllTasks(): Task[] {
+    throw new Error('Method not implemented.');
+  }
 
   async init() {
     if (this.settings.googleClientId == null || this.settings.googleClientSecret == null) {
