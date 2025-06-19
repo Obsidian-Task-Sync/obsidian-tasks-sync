@@ -2,7 +2,7 @@ import { FileRepository } from 'src/repositories/FileRepository';
 import { Remote } from './Remote';
 import { Notice } from 'obsidian';
 
-class SyncFromRemoteManager {
+export class SyncFromRemoteManager {
   private intervalId: number | null = null;
 
   //default 동기화 주기는 60초
@@ -18,20 +18,20 @@ class SyncFromRemoteManager {
     }
 
     this.intervalId = window.setInterval(async () => {
-      await this.sync();
+      await this.syncFromRemote();
     }, this.syncIntervalMs);
   }
 
-  private async sync(): Promise<void> {
+  private async syncFromRemote(): Promise<void> {
     try {
+      const remoteTasks = [];
       for (const remote of this.remotes) {
         // 각 Remote의 모든 태스크 조회
-        const tasks = await remote.getAllTasks();
-
-        // FileRepository의 각 파일에 대해 동기화 수행
-        for (const file of this.repo.getAllFiles()) {
-        }
+        const remotedTask = await remote.getAllTasks();
+        remoteTasks.push(...remotedTask);
       }
+
+      await this.repo.syncTasks(remoteTasks);
     } catch (error) {
       console.error('Remote sync failed:', error);
       new Notice(`Remote sync failed: ${error.message}`);
