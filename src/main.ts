@@ -10,6 +10,7 @@ import { TodoistSettingsData } from './models/remote/todoist/TodoistSettingTab';
 import { FileRepository } from './repositories/FileRepository';
 import { SettingTab } from './views/SettingTab';
 import { createSyncFromRemoteExtension } from './views/SyncFromRemoteButton';
+import { SyncFromRemoteManager } from './models/remote/SyncFromRemoteManager';
 
 export type PluginSettings = TodoistSettingsData & GTaskSettingsData;
 
@@ -24,6 +25,7 @@ export default class TaskSyncPlugin extends Plugin {
 
   private fileRepo: FileRepository;
   private statusBar: HTMLElement;
+  private syncFromRemoteManager: SyncFromRemoteManager;
   private authCheckInterval: number | null = null;
   private isAuthorized = false;
   private settingTab: SettingTab | null = null;
@@ -47,6 +49,8 @@ export default class TaskSyncPlugin extends Plugin {
 
     this.remotes = [gtaskRemote, todoistRemote];
     this.fileRepo = new FileRepository(this.app, this);
+    this.syncFromRemoteManager = new SyncFromRemoteManager(this.remotes, this.fileRepo, 5000);
+    this.syncFromRemoteManager.start();
 
     // 옵시디언에서 특정한 텍스트 타입 인식하게 하기 , SYNC 버튼 추가
     this.extensions.push(createSyncFromRemoteExtension(this, this.fileRepo));

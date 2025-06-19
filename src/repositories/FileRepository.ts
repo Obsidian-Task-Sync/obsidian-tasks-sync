@@ -56,6 +56,13 @@ export class FileRepository {
     this.abortController.abort();
   }
 
+  //Remote Task들을 Local에 동기화 기존에 있는 태스크들의 변경사항만 반영하고, 없는 태스크는 추가하지 않음
+  async syncTasks(remoteTasks: Task[]) {
+    for (const file of this.files.values()) {
+      await file.syncFrom(remoteTasks);
+    }
+  }
+
   get(path: string): File | undefined {
     let file = this.files.get(path);
 
@@ -199,6 +206,50 @@ export class File {
 
   hasAnyTask(): boolean {
     return this.tasks.size > 0;
+  }
+
+  async syncFrom(remoteTasks: Task[]) {
+    const remoteTasksMap = new Map(remoteTasks.map((task) => [task.getIdentifier(), task]));
+
+    this.tasks.forEach((taskWithPos) => {
+      const task = taskWithPos.task;
+      const taskId = task.getIdentifier();
+      const remoteTask = remoteTasksMap.get(taskId);
+
+      if (remoteTask) {
+        const isTitleUpdated = task.title !== remoteTask.title;
+        const isCompletedUpdated = task.completed !== remoteTask.completed;
+        const isDueDateUpdated = task.dueDate !== remoteTask.dueDate;
+
+        if (isTitleUpdated || isCompletedUpdated || isDueDateUpdated) {
+          if (isTitleUpdated) {
+            task.setTitle(remoteTask.title);
+          }
+          if (isCompletedUpdated) {
+            task.setCompleted(remoteTask.completed);
+          }
+          if (isDueDateUpdated && remoteTask.dueDate !== undefined) {
+            task.setDueDate(remoteTask.dueDate);
+          }
+
+          this.updateTaskAtPosition(taskWithPos.position, task);
+        }
+      }
+    });
+  }
+
+  async updateTaskAtPosition(position: EditorPosition, task: Task): Promise<void> {
+    const content = await this.app.vault.read(this.file);
+    const lines = content.split('\n');
+
+    if (position.line < 0 || position.line >= lines.length) {
+      throw new Error(`Invalid line number: ${position.line}`);
+    }
+
+    const taskMarkDown = task.toMarkdown();
+    lines[position.line] = taskMarkDown;
+
+    await this.app.vault.modify(this.file, lines.join('\n'));
   }
 }
 
