@@ -108,7 +108,7 @@ export class GTaskRemote implements Remote {
 
       return new Task(data.title, this, id, data.status === 'completed', dueDate, updatedAt);
     } catch (error) {
-      new Notice(`태스크를 가져오는데 실패했습니다: ${error.message}`);
+      new Notice(`Failed to get task: ${error.message}`);
       throw error;
     }
   }
@@ -128,9 +128,9 @@ export class GTaskRemote implements Remote {
           due: from.dueDate ? `${from.dueDate}T00:00:00Z` : undefined,
         },
       });
-      new Notice('태스크가 업데이트되었습니다');
+      new Notice('Task updated');
     } catch (error) {
-      new Notice(`태스크 업데이트에 실패했습니다: ${error.message}`);
+      new Notice(`Failed to update task: ${error.message}`);
       throw error;
     }
   }
