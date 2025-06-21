@@ -61,6 +61,9 @@ devDependencies:
   builtin-modules:
     specifier: 3.3.0
     version: 3.3.0
+  conventional-changelog-conventionalcommits:
+    specifier: ^9.0.0
+    version: 9.0.0
   esbuild:
     specifier: 0.17.3
     version: 0.17.3
@@ -2088,6 +2091,13 @@ packages:
 
   /conventional-changelog-angular@8.0.0:
     resolution: {integrity: sha512-CLf+zr6St0wIxos4bmaKHRXWAcsCXrJU6F4VdNDrGRK3B8LDLKoX3zuMV5GhtbGkVR/LohZ6MT6im43vZLSjmA==}
+    engines: {node: '>=18'}
+    dependencies:
+      compare-func: 2.0.0
+    dev: true
+
+  /conventional-changelog-conventionalcommits@9.0.0:
+    resolution: {integrity: sha512-5e48V0+DsWvQBEnnbBFhYQwYDzFPXVrakGPP1uSxekDkr5d7YWrmaWsgJpKFR0SkXmxK6qQr9O42uuLb9wpKxA==}
     engines: {node: '>=18'}
     dependencies:
       compare-func: 2.0.0
