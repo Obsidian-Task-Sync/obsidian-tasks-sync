@@ -31,7 +31,14 @@ export class TodoistRemote implements Remote {
 
     return activeTasks.map(
       (todoistTask) =>
-        new Task(todoistTask.content, this, todoistTask.id, todoistTask.completedAt != null, todoistTask.due?.date),
+        new Task(
+          todoistTask.content,
+          this,
+          todoistTask.id,
+          todoistTask.completedAt != null,
+          todoistTask.due?.date,
+          todoistTask.updatedAt ? todoistTask.updatedAt : new Date().toISOString(),
+        ),
     );
   }
 

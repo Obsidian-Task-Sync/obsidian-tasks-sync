@@ -104,8 +104,9 @@ export class GTaskRemote implements Remote {
       assert(data.status != null, 'Task status is null');
 
       const dueDate = data.due ? data.due.split('T')[0] : undefined;
+      const updatedAt = data.updated ? data.updated : new Date().toISOString();
 
-      return new Task(data.title, this, id, data.status === 'completed', dueDate);
+      return new Task(data.title, this, id, data.status === 'completed', dueDate, updatedAt);
     } catch (error) {
       new Notice(`태스크를 가져오는데 실패했습니다: ${error.message}`);
       throw error;
@@ -201,6 +202,7 @@ export class GTaskRemote implements Remote {
         taskId,
         gTask.status === 'completed',
         gTask.due ? gTask.due.split('T')[0] : undefined,
+        gTask.updated ? gTask.updated : new Date().toISOString(),
       );
     });
   }

@@ -178,6 +178,7 @@ export class File {
           if (isDueDateUpdated && meta.dueDate !== undefined) {
             task.setDueDate(meta.dueDate);
           }
+          task.setUpdatedAt(new Date().toISOString());
           result.updated.push(task);
         }
       } else {
@@ -220,6 +221,11 @@ export class File {
         const isTitleUpdated = task.title !== remoteTask.title;
         const isCompletedUpdated = task.completed !== remoteTask.completed;
         const isDueDateUpdated = task.dueDate !== remoteTask.dueDate;
+
+        if (task.updatedAt > remoteTask.updatedAt) {
+          // 로컬 태스크가 더 최신인 경우, 원격 태스크를 업데이트하지 않음
+          return;
+        }
 
         if (isTitleUpdated || isCompletedUpdated || isDueDateUpdated) {
           if (isTitleUpdated) {
