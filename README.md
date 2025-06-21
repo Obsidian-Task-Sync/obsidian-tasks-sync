@@ -50,8 +50,7 @@ Coming soon:
     └── plugins/
         └── obsidian-tasks-sync/
             ├── main.js
-            ├── manifest.json
-            └── styles.css
+            └── manifest.json
 ```
 
 4. Restart Obsidian or go to **Settings → Community Plugins** and enable `Obsidian Tasks Sync`.
