@@ -13,6 +13,7 @@ export const todoistIdentifierSchema = z.string();
 
 export class TodoistRemote implements Remote {
   id = 'todoist';
+  name = 'Todoist';
 
   private _client?: TodoistApi;
   settingTab: TodoistSettingTab;

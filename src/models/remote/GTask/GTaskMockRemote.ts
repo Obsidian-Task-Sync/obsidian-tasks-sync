@@ -17,6 +17,8 @@ export interface GTaskInsertMeta {
 }
 
 export class GTaskMockRemote implements Remote {
+  id = 'gtask-mock';
+  name = 'Google Tasks (Mock)';
   mockedItemsMap: Map<string, GTaskItem>;
 
   get mockedItems(): GTaskItem[] {
@@ -77,7 +79,7 @@ export class GTaskMockRemote implements Remote {
   dispose?(): void {
     throw new Error('Method not implemented.');
   }
-  id: string;
+
   settingTab: RemoteSettingPanel<object>;
   init(): Promise<void> {
     throw new Error('Method not implemented.');
@@ -110,7 +112,7 @@ export class GTaskMockRemote implements Remote {
     });
   }
 
-  async create(title: string, due: string = '2025-10-14', args: Record<string, string>): Promise<Task> {
+  async create(title: string, _ = '2025-10-14', args: Record<string, string>): Promise<Task> {
     const tasklistId = args.tasklistId;
     const item: GTaskItem = {
       id: 'mocked-id',

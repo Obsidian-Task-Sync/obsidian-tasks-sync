@@ -34,8 +34,10 @@ const createGTaskArgs = z.object({
 });
 
 export class GTaskRemote implements Remote {
-  private static readonly DEFAULT_TASKLIST_ID = '@default'; // 기본 tasklist ID
   id = 'gtask';
+  name = 'Google Tasks';
+
+  private static readonly DEFAULT_TASKLIST_ID = '@default'; // 기본 tasklist ID
   private _auth?: GTaskAuthorization;
   private _client?: tasks_v1.Tasks;
   settingTab: GTaskSettingTab;
