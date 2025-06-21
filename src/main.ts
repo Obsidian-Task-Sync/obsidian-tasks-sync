@@ -49,6 +49,8 @@ export default class TaskSyncPlugin extends Plugin {
 
     this.remotes = [gtaskRemote, todoistRemote];
     this.fileRepo = new FileRepository(this.app, this);
+    this.syncFromRemoteManager = new SyncFromRemoteManager(this.remotes, this.fileRepo, 5000);
+    this.syncFromRemoteManager.start();
 
     //interval 단위로 Remote에서 조회하고 변경사항을 반영하는 기능 추가
     this.syncFromRemoteManager = new SyncFromRemoteManager(this.remotes, this.fileRepo, 5000);
