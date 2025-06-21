@@ -1,4 +1,6 @@
 import { App, PluginSettingTab } from 'obsidian';
+import Logo from 'src/assets/logo.png';
+import LogoWhite from 'src/assets/logo_white.png';
 import TaskSyncPlugin from 'src/main';
 import { Remote } from 'src/models/remote/Remote';
 
@@ -18,22 +20,44 @@ export class SettingTab extends PluginSettingTab {
     const { containerEl } = this;
     containerEl.empty();
 
-    containerEl.createEl('h4', { text: 'Obsidian Tasks Sync Settings' });
+    // 다크모드 감지 (다크모드용 로고가 없으면 기본 로고 사용)
+    const isDarkMode = document.body.classList.contains('theme-dark');
+    const logoSrc = isDarkMode ? LogoWhite : Logo;
+
+    const logoEl = containerEl.createEl('img');
+    logoEl.src = logoSrc;
+    logoEl.alt = 'Plugin Logo';
+    logoEl.style.display = 'block';
+    logoEl.style.width = '200px';
+    logoEl.style.height = 'auto';
+    logoEl.style.margin = '20px auto';
+
+    const observer = new MutationObserver(() => {
+      const newIsDarkMode = document.body.classList.contains('theme-dark');
+      if (newIsDarkMode !== isDarkMode) {
+        logoEl.src = newIsDarkMode ? LogoWhite : Logo;
+      }
+    });
+
+    observer.observe(document.body, {
+      attributes: true,
+      attributeFilter: ['class'],
+    });
+
     containerEl.createEl('h2', {}, (h2) => {
       h2.appendText('Please refer to the  ');
       h2.createEl('a', {
         text: 'GitHub repository',
         href: 'https://github.com/hong-sile/obsidian-tasks-sync',
-        cls: 'external-link external-link-button',
       });
       h2.appendText('  for usage and contribution guidelines.');
+      h2.style.padding = '20px 0';
     });
 
     const tabContainer = containerEl.createDiv({ cls: 'setting-tab-container' });
     const tabHeader = tabContainer.createDiv({ cls: 'setting-tab-header' });
     const tabContent = tabContainer.createDiv({ cls: 'setting-tab-content' });
 
-    // 탭 변경 로직
     const showTab = (remote: Remote) => {
       tabContent.empty();
       remote.settingTab.setContainer(tabContent);
@@ -42,7 +66,7 @@ export class SettingTab extends PluginSettingTab {
 
     for (const remote of this.remotes) {
       const tabButton = tabHeader.createEl('button', {
-        text: remote.id,
+        text: remote.name,
         cls: 'tab-button',
       });
 
@@ -53,7 +77,6 @@ export class SettingTab extends PluginSettingTab {
       };
     }
 
-    // 초기 탭 선택
     if (this.remotes.length > 0) {
       showTab(this.remotes[0]);
       tabHeader.querySelector('button')?.addClass('active');
