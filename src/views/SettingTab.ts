@@ -17,6 +17,10 @@ export class SettingTab extends PluginSettingTab {
     }
   }
 
+  dispose() {
+    this.darkModeObserver?.disconnect();
+  }
+
   display(): void {
     const { containerEl } = this;
     containerEl.empty();
