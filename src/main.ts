@@ -61,7 +61,7 @@ export default class TaskSyncPlugin extends Plugin {
 
     // This adds a status bar item to the bottom of the app. Does not work on mobile apps.
     this.statusBar = this.addStatusBarItem();
-    this.statusBar.setText('초기화 중...');
+    this.statusBar.setText('Initializing...');
 
     // [중요] Remote 초기화가 된 이후에 SettingTab이 초기화되어야 합니다.
     for (const remote of this.remotes) {
@@ -84,7 +84,7 @@ export default class TaskSyncPlugin extends Plugin {
       this.setIsAuthorized(await remote.checkIsAuthorized());
 
       if (this.isAuthorized) {
-        new Notice('Google Tasks와 연동됨');
+        new Notice('Authorized');
 
         this.fileRepo.init();
         this.disposeAuthCheckInterval();
@@ -127,9 +127,9 @@ export default class TaskSyncPlugin extends Plugin {
 
   onIsAuthorizedChanged(isAuthorized: boolean) {
     if (isAuthorized) {
-      this.statusBar.setText('Google Tasks와 연동됨');
+      this.statusBar.setText('Authorized');
     } else {
-      this.statusBar.setText('Google Tasks와 연동되지 않음');
+      this.statusBar.setText('Not authorized');
     }
   }
 
