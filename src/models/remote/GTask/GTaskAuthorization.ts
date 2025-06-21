@@ -40,7 +40,7 @@ export class GTaskAuthorization {
     if (savedTokens != null) {
       this.authClient.setCredentials(savedTokens);
       // refresh token if it expired
-      await this.authClient.getAccessToken();
+      await this.authClient.refreshAccessToken();
       // refrhesh 된 credentials들을 다시 저장
       await this.persistedCredentials.set(this.authClient.credentials);
     }
