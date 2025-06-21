@@ -6,6 +6,7 @@ import { Remote } from 'src/models/remote/Remote';
 
 export class SettingTab extends PluginSettingTab {
   private remotes: Remote[];
+  private darkModeObserver: MutationObserver;
 
   constructor(app: App, plugin: TaskSyncPlugin, remotes: Remote[]) {
     super(app, plugin);
@@ -20,7 +21,6 @@ export class SettingTab extends PluginSettingTab {
     const { containerEl } = this;
     containerEl.empty();
 
-    // 다크모드 감지 (다크모드용 로고가 없으면 기본 로고 사용)
     const isDarkMode = document.body.classList.contains('theme-dark');
     const logoSrc = isDarkMode ? LogoWhite : Logo;
 
@@ -32,17 +32,19 @@ export class SettingTab extends PluginSettingTab {
     logoEl.style.height = 'auto';
     logoEl.style.margin = '20px auto';
 
-    const observer = new MutationObserver(() => {
-      const newIsDarkMode = document.body.classList.contains('theme-dark');
-      if (newIsDarkMode !== isDarkMode) {
-        logoEl.src = newIsDarkMode ? LogoWhite : Logo;
-      }
-    });
+    if (this.darkModeObserver == null) {
+      this.darkModeObserver = new MutationObserver(() => {
+        const newIsDarkMode = document.body.classList.contains('theme-dark');
+        if (newIsDarkMode !== isDarkMode) {
+          logoEl.src = newIsDarkMode ? LogoWhite : Logo;
+        }
+      });
 
-    observer.observe(document.body, {
-      attributes: true,
-      attributeFilter: ['class'],
-    });
+      this.darkModeObserver.observe(document.body, {
+        attributes: true,
+        attributeFilter: ['class'],
+      });
+    }
 
     containerEl.createEl('h2', {}, (h2) => {
       h2.appendText('Please refer to the  ');
