@@ -75,24 +75,24 @@ class SyncFromRemoteWidget extends WidgetType {
       console.log('Button clicked directly!', this.meta.identifier);
 
       const markdownView = this.plugin.app.workspace.getActiveViewOfType(MarkdownView);
-      assert(markdownView != null, 'Markdown 뷰를 찾을 수 없습니다');
-      assert(markdownView.file != null, 'Markdown 파일을 찾을 수 없습니다');
+      assert(markdownView != null, 'Cannot find Markdown view');
+      assert(markdownView.file != null, 'Cannot find Markdown file');
 
       try {
         const file = this.fileRepo.get(markdownView.file.path);
-        assert(file != null, '파일을 찾을 수 없습니다');
+        assert(file != null, 'Cannot find file');
 
         const task = file.getTask(this.meta);
-        assert(task != null, '태스크를 찾을 수 없습니다');
+        assert(task != null, 'Cannot find task');
 
         task.remote.get(task.identifier).then((remoteTask) => {
           task.setTitle(remoteTask.title);
           task.setCompleted(remoteTask.completed);
           markdownView.editor.setLine(this.index, task.toMarkdown());
-          new Notice(`동기화됨`);
+          new Notice(`Synced`);
         });
       } catch (e) {
-        new Notice(`오류: ${e.message}`);
+        new Notice(`Error: ${e.message}`);
       }
     });
 
