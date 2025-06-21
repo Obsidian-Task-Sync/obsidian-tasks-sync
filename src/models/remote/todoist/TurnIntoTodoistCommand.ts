@@ -1,7 +1,7 @@
 import { Editor, Notice } from 'obsidian';
+import { getTaskInitialMeta } from 'src/libs/regexp';
 import TaskSyncPlugin from '../../../main';
 import { TodoistRemote } from './TodoistRemote';
-import { getTaskInitialMeta } from 'src/libs/regexp';
 
 export function registerTurnIntoTodoistCommand(plugin: TaskSyncPlugin, remote: TodoistRemote): void {
   plugin.addCommand({
@@ -14,22 +14,22 @@ export function registerTurnIntoTodoistCommand(plugin: TaskSyncPlugin, remote: T
       const to = editor.getCursor('to');
 
       if (!selectedText) {
-        new Notice('텍스트를 드래그하여 선택해주세요.');
+        new Notice('Please select text by dragging');
         return;
       }
 
       try {
         const meta = getTaskInitialMeta(selectedText);
         if (meta == null) {
-          throw new Error('선택한 텍스트가 유효한 Task가 아닙니다.');
+          throw new Error('Selected text is not a valid Task');
         }
 
         const task = await remote.create(meta.title, meta.dueDate);
         editor.replaceRange(task.toMarkdown(), from, to);
-        new Notice('Todoist Task로 생성되었습니다.');
+        new Notice('Todoist Task created');
       } catch (err) {
-        console.error('Task 생성 실패:', err);
-        new Notice('Todoist Task 생성 중 오류가 발생했습니다.');
+        console.error('Failed to create Todoist Task:', err);
+        new Notice('Failed to create Todoist Task');
       }
     },
   });
