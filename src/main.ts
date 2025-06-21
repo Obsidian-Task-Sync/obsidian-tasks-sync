@@ -5,12 +5,11 @@ import { TaskPlatform } from './libs/regexp';
 import { GTaskRemote } from './models/remote/GTask/GTaskRemote';
 import { GTaskSettingsData } from './models/remote/GTask/GTaskSettings';
 import { Remote } from './models/remote/Remote';
+import { SyncFromRemoteManager } from './models/remote/SyncFromRemoteManager';
 import { TodoistRemote } from './models/remote/todoist/TodoistRemote';
 import { TodoistSettingsData } from './models/remote/todoist/TodoistSettingTab';
 import { FileRepository } from './repositories/FileRepository';
 import { SettingTab } from './views/SettingTab';
-import { createSyncFromRemoteExtension } from './views/SyncFromRemoteButton';
-import { SyncFromRemoteManager } from './models/remote/SyncFromRemoteManager';
 
 export type PluginSettings = TodoistSettingsData & GTaskSettingsData;
 
@@ -144,6 +143,7 @@ export default class TaskSyncPlugin extends Plugin {
   onunload() {
     this.remotes.forEach((remote) => remote.dispose?.());
     this.fileRepo.dispose();
+    this.settingTab?.dispose();
     this.disposeAuthCheckInterval();
   }
 }

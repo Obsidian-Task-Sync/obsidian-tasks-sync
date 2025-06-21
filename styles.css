@@ -45,20 +45,3 @@ If your plugin does not need CSS, delete this file.
   color: #fff;
   font-weight: 600;
 }
-
-.external-link-button {
-  display: inline-block;
-  padding: 4px 8px;
-  background-color: #6b4cff; /* 💜 보라색 배경 */
-  color: #ffffff;
-  text-decoration: none;
-  border-radius: 6px;
-  font-weight: 500;
-  transition: background-color 0.2s ease;
-  border: none;
-}
-
-.external-link-button:hover {
-  background-color: #5a3de0; /* 💜 hover 시 어두운 보라 */
-  color: #fff;
-}

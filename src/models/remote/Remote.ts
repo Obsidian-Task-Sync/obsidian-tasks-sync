@@ -4,6 +4,7 @@ import { Task } from '../Task';
 
 export interface Remote {
   id: string;
+  name: string;
   settingTab: RemoteSettingPanel;
   get(id: string): Promise<Task>;
   update(id: string, from: Task): Promise<void>;
