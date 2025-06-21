@@ -1,5 +1,28 @@
 # CHANGELOG
 
+## [1.1.0](https://github.com/Obsidian-Tasks-Sync/obsidian-tasks-sync/compare/1.0.2...1.1.0) (2025-06-21)
+
+### FEATURES
+
+* File에 lineInfo까지 갖도록 수정 ([fb25f9b](https://github.com/Obsidian-Tasks-Sync/obsidian-tasks-sync/commit/fb25f9b279ac4fc28ee7a770da101121343ddf8d))
+* GTask에서 완료된 Task도 조회 가능하도록 수정 ([198765f](https://github.com/Obsidian-Tasks-Sync/obsidian-tasks-sync/commit/198765fb21d45e038ee4b9d47a7a35cd6dcdaeb0))
+* GTask에서 완료된 Task도 조회 가능하도록 수정 ([02b2cf5](https://github.com/Obsidian-Tasks-Sync/obsidian-tasks-sync/commit/02b2cf5d534c34bd0ad835f1d8e1826280857fc1))
+* LWW 적용해서 가장 마지막에 update된 task로 업데이트 되도록 수정 ([8773a46](https://github.com/Obsidian-Tasks-Sync/obsidian-tasks-sync/commit/8773a46dcb999b0fcda65b10ee3ce8672de3aa64))
+* Setting을 Tab 구조로 변경, SettingTab 객체들의 display() 수정 ([05897a0](https://github.com/Obsidian-Tasks-Sync/obsidian-tasks-sync/commit/05897a0913d3f838d34d7cc4739b2b98e58021cf))
+* 비동기적으로 업데이트하는 기능 추가 ([2e24e6a](https://github.com/Obsidian-Tasks-Sync/obsidian-tasks-sync/commit/2e24e6ae843fc364b44de460fde6533a89eae0a2))
+* 비동기적으로 업데이트하는 기능 추가 ([2304472](https://github.com/Obsidian-Tasks-Sync/obsidian-tasks-sync/commit/23044720072f6f4a854dc2f1a774eda47abdef62))
+* 존재하는 모든 Task 조회하는 기능 추가 ([b2d991e](https://github.com/Obsidian-Tasks-Sync/obsidian-tasks-sync/commit/b2d991e79feda612beffadc4873736ef5a62240b))
+
+### BUG FIXES
+
+* dueDate update null허용하도록 수정 ([30c7073](https://github.com/Obsidian-Tasks-Sync/obsidian-tasks-sync/commit/30c7073d419aef194901f0274e7ece776649fdcc))
+* init할때 refresh하도록 설정 ([5f4187f](https://github.com/Obsidian-Tasks-Sync/obsidian-tasks-sync/commit/5f4187fbbfe63840a2e9dba8442b92a6ef9422bb))
+
+### REFACTOR
+
+* File Scan시 position 업데이트하도록 수정 ([20e7e32](https://github.com/Obsidian-Tasks-Sync/obsidian-tasks-sync/commit/20e7e32e8a4f3202f5847c996ff1c29cf2b5e0c4))
+* 명시적이refreshAccessToken 사용 ([0138149](https://github.com/Obsidian-Tasks-Sync/obsidian-tasks-sync/commit/013814907ee5c5f5e844fec4cd376fbc810136ff))
+
 ## 1.0.2 (2025-06-21)
 
 ### DOCS
