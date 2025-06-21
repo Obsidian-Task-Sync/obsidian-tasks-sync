@@ -59,7 +59,6 @@ This guide explains how to set up and use Google Tasks synchronization with Obsi
 
 - **Obsidian → Google Tasks**: Changes sync automatically when you modify tasks
 - **Google Tasks → Obsidian**: Automaticaly update
-  - ![Sync Example](../images/gtask-to-obsidian-sync.png)
 
 ## 🔍 Troubleshooting
 
