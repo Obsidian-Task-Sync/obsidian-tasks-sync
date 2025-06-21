@@ -58,7 +58,7 @@ export class TodoistRemote implements Remote {
 
   async authorize() {
     if (!this.settings.todoistApiToken) {
-      throw new Error('Todoist API 토큰이 설정되지 않았습니다.');
+      throw new Error('Todoist API token is not set');
     }
     // API 토큰이 있으면 이미 인증된 상태
   }
@@ -73,7 +73,7 @@ export class TodoistRemote implements Remote {
 
   private async assure() {
     if (!this._client) {
-      throw new Error('Todoist API 클라이언트가 초기화되지 않았습니다. 설정에서 API 토큰을 확인해주세요.');
+      throw new Error('Todoist API client is not initialized. Please check the API token in the settings.');
     }
     return this._client;
   }
@@ -95,7 +95,7 @@ export class TodoistRemote implements Remote {
         todoistTask.due?.date,
       );
     } catch (error) {
-      new Notice(`태스크를 가져오는데 실패했습니다: ${error.message}`);
+      new Notice(`Failed to get task: ${error.message}`);
       throw error;
     }
   }
@@ -124,9 +124,9 @@ export class TodoistRemote implements Remote {
         await client.reopenTask(taskId);
       }
 
-      new Notice('태스크가 업데이트되었습니다');
+      new Notice('Task updated');
     } catch (error) {
-      new Notice(`태스크 업데이트에 실패했습니다: ${error.message}`);
+      new Notice(`Failed to update task: ${error.message}`);
       throw error;
     }
   }
@@ -153,7 +153,7 @@ export class TodoistRemote implements Remote {
 
       return new Task(task.content, this, task.id, task.completedAt != null, due);
     } catch (error) {
-      new Notice(`태스크 생성에 실패했습니다: ${error.message}`);
+      new Notice(`Failed to create task: ${error.message}`);
       throw error;
     }
   }
