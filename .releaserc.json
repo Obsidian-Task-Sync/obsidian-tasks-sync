@@ -59,6 +59,7 @@
         "changelogTitle": "# CHANGELOG"
       }
     ],
+    "@semantic-release/npm",
     [
       "@semantic-release/github",
       {
