@@ -146,9 +146,12 @@ export class GTaskRemote implements Remote {
     const client = await this.assure();
     const { data, status } = await client.tasks.list({
       tasklist: tasklistId,
+      showCompleted: true,
+      showHidden: true,
     });
     assert(status === 200, 'Failed to get tasks');
     assert(data.items != null, 'Tasks are null');
+    console.log('Retrieved tasks:', data.items);
     return data.items;
   }
 
