@@ -83,7 +83,7 @@ export default class TaskSyncPlugin extends Plugin {
       this.setIsAuthorized(await remote.checkIsAuthorized());
 
       if (this.isAuthorized) {
-        new Notice('Google Tasks와 연동됨');
+        new Notice('Authorized');
 
         this.fileRepo.init();
         this.disposeAuthCheckInterval();
@@ -126,9 +126,9 @@ export default class TaskSyncPlugin extends Plugin {
 
   onIsAuthorizedChanged(isAuthorized: boolean) {
     if (isAuthorized) {
-      this.statusBar.setText('Google Tasks와 연동됨');
+      this.statusBar.setText('Authorized');
     } else {
-      this.statusBar.setText('Google Tasks와 연동되지 않음');
+      this.statusBar.setText('Not authorized');
     }
   }
 
