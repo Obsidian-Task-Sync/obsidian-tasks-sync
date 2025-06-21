@@ -34,6 +34,7 @@ const createGTaskArgs = z.object({
 });
 
 export class GTaskRemote implements Remote {
+  private static readonly DEFAULT_TASKLIST_ID = '@default'; // 기본 tasklist ID
   id = 'gtask';
   private _auth?: GTaskAuthorization;
   private _client?: tasks_v1.Tasks;
@@ -103,8 +104,9 @@ export class GTaskRemote implements Remote {
       assert(data.status != null, 'Task status is null');
 
       const dueDate = data.due ? data.due.split('T')[0] : undefined;
+      const updatedAt = data.updated ? data.updated : new Date().toISOString();
 
-      return new Task(data.title, this, id, data.status === 'completed', dueDate);
+      return new Task(data.title, this, id, data.status === 'completed', dueDate, updatedAt);
     } catch (error) {
       new Notice(`태스크를 가져오는데 실패했습니다: ${error.message}`);
       throw error;
@@ -145,6 +147,8 @@ export class GTaskRemote implements Remote {
     const client = await this.assure();
     const { data, status } = await client.tasks.list({
       tasklist: tasklistId,
+      showCompleted: true,
+      showHidden: true,
     });
     assert(status === 200, 'Failed to get tasks');
     assert(data.items != null, 'Tasks are null');
@@ -176,5 +180,30 @@ export class GTaskRemote implements Remote {
 
     const identifier = stringifyGTaskIdentifier({ tasklistId, taskId: data.id });
     return new Task(data.title, this, identifier, data.status === 'completed', due);
+  }
+
+  async getAllTasks(): Promise<Task[]> {
+    const gTasks = await this.getTasks(GTaskRemote.DEFAULT_TASKLIST_ID);
+
+    return gTasks.map((gTask) => {
+      // id 필수값 체크
+      if (!gTask.id || !gTask.title) {
+        throw new Error('Invalid task data: missing id or title');
+      }
+
+      const taskId = stringifyGTaskIdentifier({
+        tasklistId: GTaskRemote.DEFAULT_TASKLIST_ID,
+        taskId: gTask.id,
+      });
+
+      return new Task(
+        gTask.title,
+        this,
+        taskId,
+        gTask.status === 'completed',
+        gTask.due ? gTask.due.split('T')[0] : undefined,
+        gTask.updated ? gTask.updated : new Date().toISOString(),
+      );
+    });
   }
 }

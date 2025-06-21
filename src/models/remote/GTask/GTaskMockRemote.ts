@@ -71,6 +71,12 @@ export class GTaskMockRemote implements Remote {
       ],
     ]);
   }
+  async getAllTasks(): Promise<Task[]> {
+    throw new Error('Method not implemented.');
+  }
+  dispose?(): void {
+    throw new Error('Method not implemented.');
+  }
   id: string;
   settingTab: RemoteSettingPanel<object>;
   init(): Promise<void> {

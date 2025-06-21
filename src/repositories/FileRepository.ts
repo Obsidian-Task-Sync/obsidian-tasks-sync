@@ -1,5 +1,5 @@
 import { debounce } from 'es-toolkit';
-import { App, TFile } from 'obsidian';
+import { App, EditorPosition, TFile } from 'obsidian';
 import { getTaskLineMeta, TaskLineMeta, TaskPlatform } from 'src/libs/regexp';
 import TaskSyncPlugin from 'src/main';
 import { Task } from 'src/models/Task';
@@ -56,6 +56,13 @@ export class FileRepository {
     this.abortController.abort();
   }
 
+  //Remote Task들을 Local에 동기화 기존에 있는 태스크들의 변경사항만 반영하고, 없는 태스크는 추가하지 않음
+  async syncTasks(remoteTasks: Task[]) {
+    for (const file of this.files.values()) {
+      await file.syncFrom(remoteTasks);
+    }
+  }
+
   get(path: string): File | undefined {
     let file = this.files.get(path);
 
@@ -72,6 +79,10 @@ export class FileRepository {
 
     return file;
   }
+
+  getAllFiles(): File[] {
+    return Array.from(this.files.values());
+  }
 }
 
 interface ScanFileResult {
@@ -79,8 +90,14 @@ interface ScanFileResult {
   updated: Task[];
 }
 
+interface TaskWithPosition {
+  task: Task;
+  position: EditorPosition;
+}
+
 export class File {
-  private tasks: Map<string, Task> = new Map();
+  private static readonly TASK_PREFIX = '- [';
+  private tasks: Map<string, TaskWithPosition> = new Map();
 
   constructor(
     private app: App,
@@ -89,21 +106,36 @@ export class File {
   ) {}
 
   async initialize(): Promise<void> {
-    const content = await this.app.vault.read(this.file);
-    const lines = content.split('\n');
+    try {
+      const content = await this.app.vault.read(this.file);
+      const lines = content.split('\n');
 
-    for (const line of lines) {
-      const meta = getTaskLineMeta(line);
+      lines.forEach((lineContent, lineNumber) => {
+        const meta = getTaskLineMeta(lineContent);
+        if (!meta) return;
 
-      if (meta != null) {
+        const taskId = getTaskItemIdentifierFromMeta(meta);
+        const position: EditorPosition = {
+          line: lineNumber,
+          ch: lineContent.indexOf(File.TASK_PREFIX),
+        };
+
+        // 새 태스크 생성 및 메모리에 저장
         const task = Task.fromLineMeta(meta, this.plugin.getRemoteByPlatform(meta.platform));
-        this.tasks.set(getTaskItemIdentifierFromMeta(meta), task);
-      }
+
+        this.tasks.set(taskId, {
+          position,
+          task,
+        });
+      });
+    } catch (error) {
+      console.error(`Failed to initialize file ${this.file.path}:`, error);
+      throw error;
     }
   }
 
   getTask(meta: TaskLineMeta): Task | undefined {
-    return this.tasks.get(getTaskItemIdentifierFromMeta(meta));
+    return this.tasks.get(getTaskItemIdentifierFromMeta(meta))?.task;
   }
 
   async scan(): Promise<void> {
@@ -115,55 +147,115 @@ export class File {
       updated: [],
     };
 
-    for (const line of lines) {
+    lines.forEach((line, lineNumber) => {
       const meta = getTaskLineMeta(line);
+      if (!meta) return;
 
-      if (meta != null) {
-        const { title, completed } = meta;
-        const mapId = getTaskItemIdentifierFromMeta(meta);
-        const cached = this.tasks.get(mapId);
+      const taskId = getTaskItemIdentifierFromMeta(meta);
+      const position: EditorPosition = {
+        line: lineNumber,
+        ch: line.indexOf(File.TASK_PREFIX),
+      };
 
-        if (cached != null) {
-          const isTitleUpdated = cached.title !== title;
-          const isCompletedUpdated = cached.completed !== completed;
-          const isDueDateUpdated = cached.dueDate !== meta.dueDate;
+      const existing = this.tasks.get(taskId);
+      if (existing) {
+        // 항상 position은 업데이트
+        existing.position = position;
+        const task = existing.task;
 
+        // task 내용이 변경된 경우만 result.updated에 추가
+        const isTitleUpdated = task.title !== meta.title;
+        const isCompletedUpdated = task.completed !== meta.completed;
+        const isDueDateUpdated = task.dueDate !== meta.dueDate;
+
+        if (isTitleUpdated || isCompletedUpdated || isDueDateUpdated) {
           if (isTitleUpdated) {
-            cached.setTitle(title);
-            result.updated.push(cached);
+            task.setTitle(meta.title);
           }
-
           if (isCompletedUpdated) {
-            cached.setCompleted(completed);
-            result.updated.push(cached);
+            task.setCompleted(meta.completed);
           }
-
           if (isDueDateUpdated && meta.dueDate !== undefined) {
-            cached.setDueDate(meta.dueDate);
-            result.updated.push(cached);
+            task.setDueDate(meta.dueDate);
           }
-        } else {
-          const task = Task.fromLineMeta(meta, this.plugin.getRemoteByPlatform(meta.platform));
-
-          this.tasks.set(mapId, task);
-          result.added.push(task);
+          task.setUpdatedAt(new Date().toISOString());
+          result.updated.push(task);
         }
-      }
-    }
+      } else {
+        // 새로운 task 추가
+        const task = Task.fromLineMeta(meta, this.plugin.getRemoteByPlatform(meta.platform));
 
-    // iterator 순회중에 중간에 삭제하는 것은 위험하므로, 추후 로직 수정 필요
-    for (const task of this.tasks.values()) {
-      const mapId = getTaskItemIdentifierFromTask(task);
+        this.tasks.set(taskId, {
+          position,
+          task,
+        });
+        result.added.push(task);
+      }
+    });
+
+    for (const cached of this.tasks.values()) {
+      const mapId = getTaskItemIdentifierFromTask(cached.task);
       if (!lines.some((line) => line.includes(mapId))) {
         this.tasks.delete(mapId);
       }
     }
 
-    await Promise.all(result.updated.map((task) => task.remote.update(task.identifier, task)));
+    if (result.updated.length > 0) {
+      await Promise.all(result.updated.map((task) => task.remote.update(task.identifier, task)));
+    }
   }
 
   hasAnyTask(): boolean {
     return this.tasks.size > 0;
+  }
+
+  async syncFrom(remoteTasks: Task[]) {
+    const remoteTasksMap = new Map(remoteTasks.map((task) => [task.getIdentifier(), task]));
+
+    this.tasks.forEach((taskWithPos) => {
+      const task = taskWithPos.task;
+      const taskId = task.getIdentifier();
+      const remoteTask = remoteTasksMap.get(taskId);
+
+      if (remoteTask) {
+        const isTitleUpdated = task.title !== remoteTask.title;
+        const isCompletedUpdated = task.completed !== remoteTask.completed;
+        const isDueDateUpdated = task.dueDate !== remoteTask.dueDate;
+
+        if (task.updatedAt > remoteTask.updatedAt) {
+          // 로컬 태스크가 더 최신인 경우, 원격 태스크를 업데이트하지 않음
+          return;
+        }
+
+        if (isTitleUpdated || isCompletedUpdated || isDueDateUpdated) {
+          if (isTitleUpdated) {
+            task.setTitle(remoteTask.title);
+          }
+          if (isCompletedUpdated) {
+            task.setCompleted(remoteTask.completed);
+          }
+          if (isDueDateUpdated && remoteTask.dueDate !== undefined) {
+            task.setDueDate(remoteTask.dueDate);
+          }
+
+          this.updateTaskAtPosition(taskWithPos.position, task);
+        }
+      }
+    });
+  }
+
+  async updateTaskAtPosition(position: EditorPosition, task: Task): Promise<void> {
+    const content = await this.app.vault.read(this.file);
+    const lines = content.split('\n');
+
+    if (position.line < 0 || position.line >= lines.length) {
+      throw new Error(`Invalid line number: ${position.line}`);
+    }
+
+    const taskMarkDown = task.toMarkdown();
+    lines[position.line] = taskMarkDown;
+
+    await this.app.vault.modify(this.file, lines.join('\n'));
   }
 }
 

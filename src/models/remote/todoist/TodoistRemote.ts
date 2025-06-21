@@ -25,6 +25,27 @@ export class TodoistRemote implements Remote {
     this.settingTab = new TodoistSettingTab(plugin, settings, this);
   }
 
+  async getAllTasks(): Promise<Task[]> {
+    const client = await this.assure();
+    const activeTasks = (await client.getTasks()).results;
+
+    return activeTasks.map(
+      (todoistTask) =>
+        new Task(
+          todoistTask.content,
+          this,
+          todoistTask.id,
+          todoistTask.completedAt != null,
+          todoistTask.due?.date,
+          todoistTask.updatedAt ? todoistTask.updatedAt : new Date().toISOString(),
+        ),
+    );
+  }
+
+  dispose?(): void {
+    throw new Error('Method not implemented.');
+  }
+
   async init() {
     if (!this.settings.todoistApiToken) {
       return;

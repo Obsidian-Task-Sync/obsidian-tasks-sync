@@ -7,13 +7,22 @@ export class Task {
   identifier: string;
   remote: Remote;
   dueDate?: string; //yyyy-MM-dd format
+  updatedAt: string; // ISO 8601 format
 
-  constructor(title: string, remote: Remote, identifier: string, completed = false, dueDate?: string) {
+  constructor(
+    title: string,
+    remote: Remote,
+    identifier: string,
+    completed = false,
+    dueDate?: string,
+    updatedAt: string = new Date().toISOString(),
+  ) {
     this.title = title;
     this.remote = remote;
     this.identifier = identifier;
     this.completed = completed;
     this.dueDate = dueDate;
+    this.updatedAt = updatedAt;
   }
 
   static fromLineMeta(meta: TaskLineMeta, remote: Remote): Task {
@@ -28,8 +37,12 @@ export class Task {
     this.completed = completed;
   }
 
-  setDueDate(dueDate: string): void {
+  setDueDate(dueDate: string | undefined): void {
     this.dueDate = dueDate;
+  }
+
+  setUpdatedAt(updatedAt: string): void {
+    this.updatedAt = updatedAt;
   }
 
   toMarkdown(): string {
