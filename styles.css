@@ -17,3 +17,48 @@ If your plugin does not need CSS, delete this file.
   border-radius: 4px;
   cursor: pointer;
 }
+
+.setting-tab-content {
+  margin-top: 1.5em;
+}
+
+.tab-button {
+  padding: 6px 12px;
+  background-color: #2a2a2a;
+  color: #aaa;
+  border: none;
+  border-top-left-radius: 6px;
+  border-top-right-radius: 6px;
+  cursor: pointer;
+  transition:
+    background-color 0.2s ease,
+    color 0.2s ease;
+}
+
+.tab-button:hover {
+  background-color: #3a3a3a;
+  color: #ddd;
+}
+
+.tab-button.active {
+  background-color: #1e1e1e;
+  color: #fff;
+  font-weight: 600;
+}
+
+.external-link-button {
+  display: inline-block;
+  padding: 4px 8px;
+  background-color: #6b4cff; /* 💜 보라색 배경 */
+  color: #ffffff;
+  text-decoration: none;
+  border-radius: 6px;
+  font-weight: 500;
+  transition: background-color 0.2s ease;
+  border: none;
+}
+
+.external-link-button:hover {
+  background-color: #5a3de0; /* 💜 hover 시 어두운 보라 */
+  color: #fff;
+}
