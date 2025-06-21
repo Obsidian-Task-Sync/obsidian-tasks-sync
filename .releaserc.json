@@ -59,7 +59,33 @@
         "changelogTitle": "# CHANGELOG"
       }
     ],
-    "@semantic-release/github",
+    [
+      "@semantic-release/exec",
+      {
+        "prepareCmd": "npm run build",
+        "successCmd": "echo 'Release successful'",
+        "failCmd": "echo 'Release failed'"
+      }
+    ],
+    [
+      "@semantic-release/github",
+      {
+        "assets": [
+          {
+            "path": "main.js",
+            "label": "Main Plugin File"
+          },
+          {
+            "path": "manifest.json",
+            "label": "Plugin Manifest"
+          },
+          {
+            "path": "version.json",
+            "label": "Version Info"
+          }
+        ]
+      }
+    ],
     [
       "@semantic-release/git",
       {
