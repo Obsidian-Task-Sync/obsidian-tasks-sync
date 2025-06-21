@@ -23,7 +23,7 @@ This guide explains how to set up and use Google Tasks synchronization with Obsi
    - `http://127.0.0.1:42813`
 3. Add redirect URI:
    - `http://127.0.0.1:42813/callback`
-     ![OAuth Client Setup](../images/create-oauth-client.png)
+   - ![OAuth Client Setup](../images/create-oauth-client.png)
 
 ### 3. Register Test Users
 
@@ -58,8 +58,8 @@ This guide explains how to set up and use Google Tasks synchronization with Obsi
 ### Synchronization
 
 - **Obsidian → Google Tasks**: Changes sync automatically when you modify tasks
-- **Google Tasks → Obsidian**: Use the sync button to pull changes
-  ![Sync Example](../images/gtask-to-obsidian-sync.png)
+- **Google Tasks → Obsidian**: Automaticaly update
+  - ![Sync Example](../images/gtask-to-obsidian-sync.png)
 
 ## 🔍 Troubleshooting
 
