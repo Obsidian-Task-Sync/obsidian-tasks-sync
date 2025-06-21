@@ -65,15 +65,15 @@
         "assets": [
           {
             "path": "main.js",
-            "label": "Main Plugin File"
+            "label": "main.js"
           },
           {
             "path": "manifest.json",
-            "label": "Plugin Manifest"
+            "label": "manifest.json"
           },
           {
-            "path": "version.json",
-            "label": "Version Info"
+            "path": "versions.json",
+            "label": "versions.json"
           }
         ]
       }
