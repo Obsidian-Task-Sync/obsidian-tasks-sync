@@ -81,7 +81,7 @@ Tasks will be synced in both directions once authorized.
 ### Optional: Customize or Update
 
 * You can replace the plugin folder with a newer release anytime.
-* For developers, see the [[Development Guide]] if you'd like to build from source.
+* For developers, see the [Development Guide](https://github.com/hong-sile/obsidian-tasks-sync/wiki/Development-Guide) if you'd like to build from source.
 
 ## How to use
 
