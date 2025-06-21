@@ -55,7 +55,7 @@ This guide explains how to download and install a published release of **Task Sy
             └── manifest.json
 ```
 
-4. Restart Obsidian or go to **Settings → Community Plugins** and enable `Obsidian Tasks Sync`.
+4. Restart Obsidian or go to **Settings → Community Plugins** and enable `Task Sync`.
 
 
 ### 3. Authorize Your Task Platform
