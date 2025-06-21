@@ -1,9 +1,9 @@
 {
-  "id": "tasks-sync",
-  "name": "Tasks Sync",
-  "description": "Sync your tasks with any other task manager",
-  "author": "이게대체MERGE",
-  "version": "1.0.2",
-  "minAppVersion": "0.15.0",
-  "isDesktopOnly": true
+	"id": "tasks-sync",
+	"name": "Tasks Sync",
+	"description": "Sync your tasks with any other task manager",
+	"author": "이게대체MERGE",
+	"version": "1.0.0",
+	"minAppVersion": "0.15.0",
+	"isDesktopOnly": true
 }
