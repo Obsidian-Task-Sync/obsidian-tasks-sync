@@ -40,6 +40,11 @@ jobs:
         with:
           app_id: ${{ secrets.GH_APP_ID }}
           private_key: ${{ secrets.GH_APP_PRIVATE_KEY }}
+          permissions: |
+            contents: write
+            issues: write
+            pull-requests: write
+            packages: write
 
       - name: Run semantic-release with GitHub App token
         run: npx semantic-release
