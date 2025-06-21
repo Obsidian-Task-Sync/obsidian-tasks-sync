@@ -10,6 +10,25 @@ if you want to view the source, please visit the github repository of this plugi
 
 const prod = process.argv[2] === 'production';
 
+// 이미지 파일을 처리하는 플러그인
+const imagePlugin = {
+  name: 'image-loader',
+  setup(build) {
+    build.onLoad({ filter: /\.(png|jpg|jpeg|gif|svg|webp)$/ }, async (args) => {
+      const fs = await import('fs');
+      const path = await import('path');
+
+      const filePath = args.path;
+      const fileName = path.basename(filePath);
+
+      return {
+        contents: `export default "data:image/${path.extname(fileName).slice(1)};base64,${fs.readFileSync(filePath, 'base64')}";`,
+        loader: 'js',
+      };
+    });
+  },
+};
+
 const context = await esbuild.context({
   banner: {
     js: banner,
@@ -17,6 +36,7 @@ const context = await esbuild.context({
   entryPoints: ['src/main.ts'],
   bundle: true,
   platform: 'node',
+  plugins: [imagePlugin], // 이미지 플러그인 추가
   external: [
     'obsidian',
     'electron',
