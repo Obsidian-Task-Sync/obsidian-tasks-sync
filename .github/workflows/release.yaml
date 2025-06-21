@@ -34,6 +34,15 @@ jobs:
       - name: Build project
         run: pnpm build
 
-      - run: pnpm exec semantic-release
+      - name: Generate GitHub App Installation Token
+        id: generate_token
+        uses: tibdex/github-app-token@v2
+        with:
+          app_id: ${{ secrets.GH_APP_ID }}
+          private_key: ${{ secrets.GH_APP_PRIVATE_KEY }}
+
+      - name: Run semantic-release with GitHub App token
+        run: npx semantic-release
         env:
-          GITHUB_TOKEN: ${{ secrets.GH_TOKEN }}
+          GITHUB_TOKEN: ${{ steps.generate_token.outputs.token }}
+          NODE_ENV: production
