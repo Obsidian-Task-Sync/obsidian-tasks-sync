@@ -1,7 +1,7 @@
 {
   "name": "obsidian-tasks-sync-plugins",
   "version": "1.0.2",
-  "description": "This is a sample plugin for Obsidian! (https://obsidian.md)",
+  "description": "Obsidian Tasks Sync Plugin",
   "main": "main.js",
   "private": true,
   "scripts": {
