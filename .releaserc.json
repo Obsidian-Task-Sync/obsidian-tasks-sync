@@ -60,14 +60,6 @@
       }
     ],
     [
-      "@semantic-release/exec",
-      {
-        "prepareCmd": "pnpm build",
-        "successCmd": "echo 'Release successful'",
-        "failCmd": "echo 'Release failed'"
-      }
-    ],
-    [
       "@semantic-release/github",
       {
         "assets": [
