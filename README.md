@@ -32,6 +32,8 @@ Coming soon:
 
 ## Installation
 
+This guide explains how to download and install a published release of **Task Sync** into your own Obsidian vault — no development or build setup required.
+
 ### 1. Download the Release
 
 1. Visit the [Releases Page](https://github.com/hong-sile/obsidian-tasks-sync/releases) of the repository.
@@ -127,7 +129,3 @@ See platform-specific documentation for detailed format information.
 - Supported Platforms:
   - [Google Tasks](docs/platform/GTask.md)
   - [Todoist](docs/platform/todoist.md)
-
-## 📦 Using the Release in Your Obsidian Vault
-
-This guide explains how to download and install a published release of **Obsidian Tasks Sync** into your own Obsidian vault — no development or build setup required.
