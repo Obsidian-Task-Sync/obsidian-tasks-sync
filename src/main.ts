@@ -13,12 +13,15 @@ import { SettingTab } from './views/SettingTab';
 
 export type PluginSettings = TodoistSettingsData & GTaskSettingsData;
 
-//test
 const DEFAULT_SETTINGS: PluginSettings = {
   googleClientId: null,
   googleClientSecret: null,
   todoistApiToken: null,
 };
+
+const a = 2;
+// @ts-ignore
+window.a = a;
 
 export default class TaskSyncPlugin extends Plugin {
   private remotes: Remote[];
