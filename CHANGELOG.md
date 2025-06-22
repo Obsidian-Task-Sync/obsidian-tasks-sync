@@ -1,5 +1,12 @@
 # CHANGELOG
 
+## [1.2.0](https://github.com/Obsidian-Tasks-Sync/obsidian-tasks-sync/compare/1.1.0...v1.2.0) (2025-06-22)
+
+
+### Features
+
+* test ([6dcb726](https://github.com/Obsidian-Tasks-Sync/obsidian-tasks-sync/commit/6dcb726ced54e7b89efac5d1a463131ff4ff0c65))
+
 ## [1.1.0](https://github.com/Obsidian-Tasks-Sync/obsidian-tasks-sync/compare/1.0.2...1.1.0) (2025-06-21)
 
 ### FEATURES

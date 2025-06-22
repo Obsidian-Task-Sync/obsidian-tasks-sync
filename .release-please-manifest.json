@@ -1,3 +1,4 @@
 {
-  "tag-format": "${version}"
+  "tag-format": "${version}",
+  ".": "1.2.0"
 }
