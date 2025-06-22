@@ -1,5 +1,12 @@
 # CHANGELOG
 
+## [1.2.1](https://github.com/Obsidian-Tasks-Sync/obsidian-tasks-sync/compare/v1.2.0...v1.2.1) (2025-06-22)
+
+
+### Bug Fixes
+
+* remove unnecessary code ([114193d](https://github.com/Obsidian-Tasks-Sync/obsidian-tasks-sync/commit/114193dcf62df413eee166857043581f832a5cd7))
+
 ## [1.2.0](https://github.com/Obsidian-Tasks-Sync/obsidian-tasks-sync/compare/1.1.0...v1.2.0) (2025-06-22)
 
 
