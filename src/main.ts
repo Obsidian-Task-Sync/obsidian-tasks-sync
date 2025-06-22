@@ -19,10 +19,6 @@ const DEFAULT_SETTINGS: PluginSettings = {
   todoistApiToken: null,
 };
 
-const a = 2;
-// @ts-ignore
-window.a = a;
-
 export default class TaskSyncPlugin extends Plugin {
   private remotes: Remote[];
 
