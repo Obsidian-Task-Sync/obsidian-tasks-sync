@@ -1,5 +1,25 @@
 # CHANGELOG
 
+## [1.2.0](https://github.com/Obsidian-Tasks-Sync/obsidian-tasks-sync/compare/1.1.0...v1.2.0) (2025-06-22)
+
+
+### Features
+
+* release config ([c6d53d4](https://github.com/Obsidian-Tasks-Sync/obsidian-tasks-sync/commit/c6d53d45a5ce4a660bfaf2005fbe54bb3c7f053e))
+* test ([8c21032](https://github.com/Obsidian-Tasks-Sync/obsidian-tasks-sync/commit/8c21032ae6bc0e06d25a8d39d5254d7a6d20783b))
+* test ([5b1fd4f](https://github.com/Obsidian-Tasks-Sync/obsidian-tasks-sync/commit/5b1fd4f27433c3a2f8b62dd83426fc79cf9dcbe3))
+* test ([6dcb726](https://github.com/Obsidian-Tasks-Sync/obsidian-tasks-sync/commit/6dcb726ced54e7b89efac5d1a463131ff4ff0c65))
+
+
+### Bug Fixes
+
+* manifest.json ([cd21b41](https://github.com/Obsidian-Tasks-Sync/obsidian-tasks-sync/commit/cd21b416bad998aad9aa23d3fa620fb3d747915d))
+* manifest.json ([69fe4af](https://github.com/Obsidian-Tasks-Sync/obsidian-tasks-sync/commit/69fe4afddfaf4587ce6f10b90b85685c260a13f9))
+* release.yaml ([8d7b642](https://github.com/Obsidian-Tasks-Sync/obsidian-tasks-sync/commit/8d7b642ce7417277c7f4a5478b1606821d051ab7))
+* test ([24484b0](https://github.com/Obsidian-Tasks-Sync/obsidian-tasks-sync/commit/24484b0eaeb5e2da5bfe9b038e08a487df39af9d))
+* test ([439d44a](https://github.com/Obsidian-Tasks-Sync/obsidian-tasks-sync/commit/439d44aecfba921d03514c07dece8c5a964607f3))
+* test ([94a9bd6](https://github.com/Obsidian-Tasks-Sync/obsidian-tasks-sync/commit/94a9bd6bc9851fff2d37c27e5234ac1d85a6b2bf))
+
 ## [1.1.0](https://github.com/Obsidian-Tasks-Sync/obsidian-tasks-sync/compare/1.0.2...1.1.0) (2025-06-21)
 
 ### FEATURES
