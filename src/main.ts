@@ -13,6 +13,7 @@ import { SettingTab } from './views/SettingTab';
 
 export type PluginSettings = TodoistSettingsData & GTaskSettingsData;
 
+//test
 const DEFAULT_SETTINGS: PluginSettings = {
   googleClientId: null,
   googleClientSecret: null,
