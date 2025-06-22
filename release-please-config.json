@@ -1,11 +1,20 @@
 {
-  "tag-format": "${version}",
+  "tag-format": "v${version}",
   "release-type": "node",
+  "include-component-in-tag": false,
+  "bump-minor-pre-major": true,
+  "bump-patch-for-minor-pre-major": true,
   "extra-files": [
     {
       "type": "json",
       "path": "manifest.json",
       "jsonpath": "$.version"
     }
-  ]
+  ],
+  "packages": {
+    ".": {
+      "release-type": "node",
+      "private": true
+    }
+  }
 }
