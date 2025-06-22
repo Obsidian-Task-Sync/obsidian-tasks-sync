@@ -1,3 +1,8 @@
+
+<p align="center">
+  <img src="https://github.com/user-attachments/assets/5dfd2a55-626f-4508-bbea-cb7d8f37badf" width="320" />
+</p>
+
 # Obsidian Task Sync
 
 A plugin that helps you synchronize your Obsidian tasks with various task management platforms.
