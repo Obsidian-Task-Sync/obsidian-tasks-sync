@@ -1,0 +1,30 @@
+# .github/workflows/release-build.yml
+name: Build and Upload Artifacts
+
+on:
+  release:
+    types: [created]
+
+jobs:
+  release-artifact:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0 # 태그 포함
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+
+      - run: pnpm install
+      - run: pnpm build
+
+      - uses: softprops/action-gh-release@v1
+        with:
+          files: |
+            main.js
+            versions.json
+            manifest.json
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
