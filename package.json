@@ -8,11 +8,11 @@
     "dev": "node esbuild.config.mjs",
     "build": "tsc -noEmit -skipLibCheck && node esbuild.config.mjs production",
     "version": "node version-bump.mjs && git add manifest.json versions.json",
+    "test": "vitest",
+    "test:ui": "vitest --ui",
     "lint": "eslint src/**/*.ts",
     "format": "prettier --write \"src/**/*.ts\"",
-    "prepare": "husky",
-    "test": "vitest",
-    "test:ui": "vitest --ui"
+    "prepare": "husky"
   },
   "keywords": [],
   "author": "",
