@@ -1,3 +1,11 @@
 {
-  "tag-format": "${version}"
+  "tag-format": "${version}",
+  "release-type": "node",
+  "extra-files": [
+    {
+      "type": "json",
+      "path": "manifest.json",
+      "jsonpath": "$.version"
+    }
+  ]
 }
