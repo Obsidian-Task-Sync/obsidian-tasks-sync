@@ -1,5 +1,12 @@
 # CHANGELOG
 
+## [1.2.2](https://github.com/Obsidian-Tasks-Sync/obsidian-tasks-sync/compare/v1.2.1...v1.2.2) (2025-06-22)
+
+
+### Bug Fixes
+
+* re-add logo.png ([243a0aa](https://github.com/Obsidian-Tasks-Sync/obsidian-tasks-sync/commit/243a0aa22204db0f4b57ded8ae3eac62b4581d8a))
+
 ## [1.2.1](https://github.com/Obsidian-Tasks-Sync/obsidian-tasks-sync/compare/v1.2.0...v1.2.1) (2025-06-22)
 
 
