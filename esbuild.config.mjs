@@ -63,6 +63,7 @@ const context = await esbuild.context({
   sourcemap: prod ? false : 'inline',
   treeShaking: true,
   outfile: 'main.js',
+  tsconfig: './tsconfig.build.json',
   minify: prod,
 });
 

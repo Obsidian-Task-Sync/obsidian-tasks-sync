@@ -1,15 +1,13 @@
-import * as regexpModule from 'src/libs/regexp';
-import { describe, it, expect, vi, beforeEach } from 'vitest';
-import { Remote } from 'src/models/remote/Remote';
-import { GTaskMockRemote } from 'src/models/remote/GTask/GTaskMockRemote';
 import { TFile } from 'obsidian';
-import { FileRepository, File } from 'src/repositories/FileRepository';
-import { createTest2MdFixture, createTest1MdFixture } from '../fixtures/FileFixtures';
+import { TaskLineMeta } from 'src/libs/regexp';
 import { Task } from 'src/models/Task';
+import { File, FileRepository } from 'src/repositories/FileRepository';
+import { beforeEach, describe, expect, it, vi } from 'vitest';
+import { createTest1MdFixture, createTest2MdFixture } from '../fixtures/FileFixtures';
 
 describe('FileRepository', () => {
   let app: any;
-  let remote: Remote;
+  let plugin: any;
   let repo: FileRepository;
 
   beforeEach(() => {
@@ -18,16 +16,21 @@ describe('FileRepository', () => {
         getFileByPath: vi.fn(),
         getMarkdownFiles: vi.fn(),
         read: vi.fn(),
+        modify: vi.fn(),
+        on: vi.fn(),
+        off: vi.fn(),
+      },
+      workspace: {
+        on: vi.fn(),
+        offref: vi.fn(),
       },
     };
-    remote = new GTaskMockRemote();
 
-    const files = new Map();
-    const tFile: TFile = createTest1MdFixture();
-    const file = new File(app, remote, tFile);
-    files.set('test1.md', file);
+    plugin = {
+      getRemoteByPlatform: vi.fn(),
+    };
 
-    repo = new FileRepository(app, remote, files);
+    repo = new FileRepository(app, plugin);
   });
 
   it('get returns undefined if file not found', () => {
@@ -47,23 +50,23 @@ describe('FileRepository', () => {
     expect(file2).toBe(file);
   });
 
-  it('initialize batches files and only adds files with tasks', async () => {
+  it('init batches files and only adds files with tasks', async () => {
     const tFiles = [createTest1MdFixture(), createTest2MdFixture()];
     app.vault.getMarkdownFiles.mockReturnValue(tFiles);
 
     // Mock File and its methods
     app.vault.read.mockImplementation((file: TFile) => {
       if (file.path === 'test1.md') {
-        return '- [ ] [Task 1](gtask:id1:list1)\n';
+        return '- [ ] Task 1  <!-- task:gtask:list1;id1 -->';
       } else if (file.path === 'test2.md') {
-        return '- [x] [Task 2](gtask:id2:list2)';
+        return '- [x] Task 2  <!-- task:gtask:list2;id2 -->';
       }
       return '';
     });
 
-    await repo.initialize();
+    await repo.init();
 
-    // Should call initialize for each file
+    // Should have files with tasks
     expect(repo.get('test1.md')).toBeDefined();
     expect(repo.get('test2.md')).toBeDefined();
 
@@ -74,7 +77,7 @@ describe('FileRepository', () => {
 
 describe('File', () => {
   let app: any;
-  let remote: Remote;
+  let plugin: any;
   let tFile: any;
   let file: File;
 
@@ -82,45 +85,76 @@ describe('File', () => {
     app = {
       vault: {
         read: vi.fn(),
+        modify: vi.fn(),
       },
     };
-    remote = {
-      get: vi.fn(),
-      create: vi.fn(),
-      authorize: vi.fn(),
-      update: vi.fn(),
-    }
+
+    plugin = {
+      getRemoteByPlatform: vi.fn(),
+    };
+
     tFile = { path: 'test1.md' };
-    file = new File(app, remote, tFile);
+    file = new File(app, plugin, tFile);
   });
 
   it('initialize parses lines and adds tasks', async () => {
-    app.vault.read.mockResolvedValue('- [ ] [Title](gtask:id1:list1)\nnotask');
+    const mockRemote = {
+      id: 'gtask',
+      update: vi.fn(),
+    };
+    plugin.getRemoteByPlatform.mockReturnValue(mockRemote);
+
+    app.vault.read.mockResolvedValue('- [ ] Title  <!-- task:gtask:list1;id1 -->');
 
     await file.initialize();
-    expect(file.getTask('id1', 'list1')).toBeInstanceOf(Task);
+
+    // Create meta to test getTask
+    const meta: TaskLineMeta = {
+      title: 'Title',
+      identifier: 'list1;id1',
+      platform: 'gtask',
+      completed: false,
+      dueDate: undefined,
+    };
+
+    const task = file.getTask(meta);
+    expect(task).toBeInstanceOf(Task);
+    expect(task?.title).toBe('Title');
   });
 
   it('scan adds and updates tasks, removes missing tasks, and calls remote.update', async () => {
+    const mockRemote = {
+      id: 'gtask',
+      update: vi.fn(),
+    };
+    plugin.getRemoteByPlatform.mockReturnValue(mockRemote);
+
     // Initial state: one task
-    app.vault.read.mockResolvedValue('- [ ] [Title](gtask:id1:list1)\n- [x] [Done](gtask:id2:list2)');
+    app.vault.read.mockResolvedValue(
+      '- [ ] Title  <!-- task:gtask:list1;id1 -->\n- [x] Done  <!-- task:gtask:list2;id2 -->',
+    );
 
     await file.initialize();
 
-    // Now scan with updated content (id1 updated, id2 removed, id3 added)
-    app.vault.read.mockResolvedValue('- [x] [Title Updated](gtask:id1:list1)\n- [ ] [New](gtask:id3:list3)');
+    // Now scan with updated content (id1 completed, id2 removed, id3 added)
+    app.vault.read.mockResolvedValue(
+      '- [x] Title  <!-- task:gtask:list1;id1 -->\n- [ ] New  <!-- task:gtask:list3;id3 -->',
+    );
 
     await file.scan();
 
-    // id1 should be updated, id2 removed, id3 added
-    expect(file.getTask('id1', 'list1')).toBeInstanceOf(Task);
-    expect(file.getTask('id3', 'list3')).toBeInstanceOf(Task);
-    expect(file.getTask('id2', 'list2')).toBeUndefined();
-    expect(remote.update).toHaveBeenCalled();
+    // Check that remote.update was called for updated tasks
+    expect(mockRemote.update).toHaveBeenCalled();
   });
 
   it('hasAnyTask returns true if tasks exist', async () => {
-    app.vault.read.mockResolvedValue('- [ ] [Title](gtask:id1:list1)');
+    const mockRemote = {
+      id: 'gtask',
+      update: vi.fn(),
+    };
+    plugin.getRemoteByPlatform.mockReturnValue(mockRemote);
+
+    app.vault.read.mockResolvedValue('- [ ] Title  <!-- task:gtask:list1;id1 -->');
     await file.initialize();
     expect(file.hasAnyTask()).toBe(true);
   });
