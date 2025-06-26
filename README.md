@@ -7,6 +7,13 @@
 
 A plugin that helps you synchronize your Obsidian tasks with various task management platforms.
 
+## Contributors
+
+- enk0de (임지훈)
+- dmstjdhdh (김용우)
+- hong-sile (홍혁준)
+- parkjanghan (박장한)
+
 ## Features
 
 - Bi-directional task synchronization
